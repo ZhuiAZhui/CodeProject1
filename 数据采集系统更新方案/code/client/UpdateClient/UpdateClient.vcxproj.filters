@@ -19,6 +19,15 @@
     <Filter Include="UDP消息">
       <UniqueIdentifier>{e14536ba-8ba7-4c2d-ab8f-d1b1e3d8188a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="public">
+      <UniqueIdentifier>{e6da5e75-addd-4c84-bb73-ed86afe5bb2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="public\tinyxml">
+      <UniqueIdentifier>{212b52e8-2f17-480a-9768-6617e15ca515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="public\MD5">
+      <UniqueIdentifier>{93ceeb0f-166b-493f-ae09-9de2a59c22cc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -48,11 +57,23 @@
     <ClInclude Include="InitSocket.h">
       <Filter>UDP消息</Filter>
     </ClInclude>
-    <ClInclude Include="PublicFunction.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="File64.h">
-      <Filter>头文件</Filter>
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="PublicFunction.h">
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="tinystr.h">
+      <Filter>public\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml.h">
+      <Filter>public\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>public\MD5</Filter>
+    </ClInclude>
+    <ClInclude Include="md5global.h">
+      <Filter>public\MD5</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -75,10 +96,25 @@
       <Filter>UDP消息</Filter>
     </ClCompile>
     <ClCompile Include="PublicFunction.cpp">
-      <Filter>源文件</Filter>
+      <Filter>public</Filter>
     </ClCompile>
     <ClCompile Include="File64.cpp">
-      <Filter>源文件</Filter>
+      <Filter>public</Filter>
+    </ClCompile>
+    <ClCompile Include="tinystr.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlerror.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlparser.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>public\MD5</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

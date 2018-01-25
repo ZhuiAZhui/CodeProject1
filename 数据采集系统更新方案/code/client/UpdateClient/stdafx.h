@@ -38,6 +38,7 @@
 #include <iostream>
 #include <Windows.h>
 #include <WinSock2.h>
+#include <vector>
 #include "InitSocket.h"
 #include "GroupTalk.h"
 #include "File64.h"
@@ -57,6 +58,9 @@ using namespace std;
 #define FILE_RECEVIE_OVER		WM_USER + 100		//  文件接收成功消息  
 #define FILE_SEND_SUCCESS			WM_USER + 101		//  文件发送成功消息  
 
+
+
+#pragma comment(lib,"version.lib")
 
 enum
 {

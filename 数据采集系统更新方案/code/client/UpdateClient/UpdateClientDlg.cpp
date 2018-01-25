@@ -131,8 +131,7 @@ BOOL CUpdateClientDlg::OnInitDialog()
 
 	EnableControls(FALSE);
 	InitGroupTalk();
-
-	//ShowWindow(SW_MINIMIZE);
+	ShowWindow(SW_MINIMIZE);
 
 	// TODO: 在此添加额外的初始化代码
 
@@ -210,6 +209,7 @@ void CUpdateClientDlg::LoadConfig()
 
 	TCHAR szBuffer[MAX_PATH] = { 0 };
 	CString strExePath = PublicFunction::M2W((m_curPath+ CONFIG_PATH).c_str()) ;
+	string xmlPath = m_curPath + "\\Update.xml";
 
 	GetPrivateProfileStringW(_T("ServerInfo"), _T("IP"), _T(""), szBuffer, MAX_PATH, strExePath);
 	strSerIP = szBuffer;
@@ -225,6 +225,9 @@ void CUpdateClientDlg::LoadConfig()
 	GetPrivateProfileString(_T("LoaclConfig"), _T("SystemPath"), _T(""), szBuffer, MAX_PATH, strExePath);
 	sysPath = szBuffer;
 	m_sysPath = PublicFunction::W2M(sysPath);
+
+	// 初始化Update.xml文件
+	InitUpdateXml();
 
 	usExeCount = GetPrivateProfileInt(_T("LoaclConfig"), _T("count"), 0, strExePath);
 	for (int index = 1;index <= usExeCount;index++)
@@ -421,6 +424,9 @@ void CUpdateClientDlg::HandleGroupMsg(HWND hDlg, GT_HDR *pHeader)//函数实现体
 			UpdateLog(_T("准备发送目录结构文件SystemPathInfo.txt...\r\n"));
 			strLog = _T("");
 
+			// 更新Update.xml文件
+			InitUpdateXml();
+
 			// 服务器请求获取 数采目录结构信息
 			// 发送 SystemPathInfo.txt文件（ 设定数采目录时写入该文件）
 			if (strcmp(pHeader->data(), "GetRemoteDir") == 0)
@@ -472,6 +478,9 @@ void CUpdateClientDlg::HandleGroupMsg(HWND hDlg, GT_HDR *pHeader)//函数实现体
 		{
 			strLog = strLogHead + _T("收到消息-MT_BEGIN_UPDATE_MESG 更新准备...\r\n");
 			UpdateLog(strLog);
+
+			// 更新Update.xml文件
+			InitUpdateXml();
 
 			g_pTalk->SendText("", 0, MT_CHECK_MESG, dwAddress);
 			UpdateLog(_T("'更新检查'消息MT_CHECK_MESG已发送.\r\n"));
@@ -688,6 +697,34 @@ BOOL CUpdateClientDlg::BeginProcess(CString &error)
 		}
 	}
 	return bRet;
+}
+
+void CUpdateClientDlg::InitUpdateXml()
+{
+	UINT uiExclueCount = 0;
+	CString strExeName = _T("");
+
+	TCHAR szBuffer[MAX_PATH] = { 0 };
+	CString strExePath = PublicFunction::M2W((m_curPath + CONFIG_PATH).c_str());
+	string xmlPath = m_curPath + "\\Update.xml";
+
+	// 获取‘例外文件’列表
+	uiExclueCount = GetPrivateProfileInt(_T("LoaclConfig"), _T("ExclusionCount"), 0, strExePath);
+	for (UINT index = 1;index <= uiExclueCount;index++)
+	{
+		CString sectionName = _T("");
+		sectionName.Format(_T("ExclusionFile%d"), index);
+		string strExclueFile = "";
+		GetPrivateProfileString(sectionName, _T("FileName"), _T(""), szBuffer, MAX_PATH, strExePath);
+		strExclueFile = PublicFunction::W2M(szBuffer);
+		if (strExclueFile != "")
+		{
+			m_ExcludeFile.push_back(strExclueFile);
+		}
+	}
+
+	// 获取更新目录，并初始化其xml文件
+	PublicFunction::InitFolderToXml(m_sysPath, xmlPath, m_ExcludeFile);
 }
 
 

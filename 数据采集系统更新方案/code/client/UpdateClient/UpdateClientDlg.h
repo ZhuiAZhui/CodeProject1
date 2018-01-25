@@ -57,6 +57,8 @@ public:
 	// 开启 数采exe进程
 	BOOL BeginProcess(CString &error);
 
+	void InitUpdateXml();
+
 	// 监视更新的exe进程名
 	CListCtrl m_ExeList;
 
@@ -70,6 +72,7 @@ public:
 
 	string m_curPath;
 	string m_sendFileName;
+	vector<std::string> m_ExcludeFile;	// 排除的更新文件
 private:
 	void InitGroupTalk();
 
