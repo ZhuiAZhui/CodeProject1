@@ -19,6 +19,15 @@
     <Filter Include="UDP消息">
       <UniqueIdentifier>{14afdd94-fd9c-47d6-84d0-5b1d0dca2818}</UniqueIdentifier>
     </Filter>
+    <Filter Include="public">
+      <UniqueIdentifier>{3ef74e8e-c952-44c8-8fab-9c0ab66b2928}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="public\tinyxml">
+      <UniqueIdentifier>{3d2140b4-c5b9-4291-a880-760f95a91d9d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="public\MD5">
+      <UniqueIdentifier>{544d8507-4247-4c2f-b8c2-a55793041cc3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -52,7 +61,19 @@
       <Filter>文件传输</Filter>
     </ClInclude>
     <ClInclude Include="PublicFunction.h">
-      <Filter>头文件</Filter>
+      <Filter>public</Filter>
+    </ClInclude>
+    <ClInclude Include="tinystr.h">
+      <Filter>public\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="tinyxml.h">
+      <Filter>public\tinyxml</Filter>
+    </ClInclude>
+    <ClInclude Include="md5.h">
+      <Filter>public\MD5</Filter>
+    </ClInclude>
+    <ClInclude Include="md5global.h">
+      <Filter>public\MD5</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -78,7 +99,22 @@
       <Filter>文件传输</Filter>
     </ClCompile>
     <ClCompile Include="PublicFunction.cpp">
-      <Filter>源文件</Filter>
+      <Filter>public</Filter>
+    </ClCompile>
+    <ClCompile Include="tinystr.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxml.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlerror.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="tinyxmlparser.cpp">
+      <Filter>public\tinyxml</Filter>
+    </ClCompile>
+    <ClCompile Include="md5.cpp">
+      <Filter>public\MD5</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

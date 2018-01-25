@@ -51,15 +51,38 @@ void CUpdateServer::Init()
 	string strMultiAddr = "";
 	string strRemoteIP = "";
 	u_short usMultiPort = 0;
+	UINT uiExclueCount = 0;
+	string strUpdatePath = "";
 	char szBuffer[MAX_PATH] = { 0 };
 
 	m_curPath = PublicFunction::GetCurrentRunPath();
 	string configPath = m_curPath + CONFIG_NAME;
+	string xmlPath = m_curPath + UPDATEXML;
 
 	// 获取组播信息
 	GetPrivateProfileStringA(("BoradCastInfo"), ("IP"), (""), szBuffer, MAX_PATH, configPath.c_str());
 	strMultiAddr = szBuffer;
 	usMultiPort = GetPrivateProfileIntA(("BoradCastInfo"), ("PORT"), GROUP_PORT, configPath.c_str());
+
+	// 获取‘例外文件’列表
+	uiExclueCount = GetPrivateProfileIntA(("UpdateFileInfo"), ("ExclusionCount"), 0, configPath.c_str());
+	for (UINT index = 1;index <= uiExclueCount;index++)
+	{
+		char szSection[20] = { 0 };
+		sprintf_s(szSection, "ExclusionFile%d", index);
+		string strExclueFile = "";
+		GetPrivateProfileStringA(szSection, ("FileName"), (""), szBuffer, MAX_PATH, configPath.c_str());
+		strExclueFile = szBuffer;
+		if (strExclueFile != "")
+		{
+			m_ExcludeFile.push_back(strExclueFile);
+		}
+	}
+	 
+	// 获取更新目录，并初始化其xml文件（文件名，版本，MD5值组成的xml文件）
+	GetPrivateProfileStringA(("UpdateFileInfo"), ("path"), (""), szBuffer, MAX_PATH, configPath.c_str());
+	strUpdatePath = szBuffer;
+	PublicFunction::InitFolderToXml(strUpdatePath, xmlPath, m_ExcludeFile);
 
 	// 获取 执行机IP及文件传输端口，用于文件传输
 	int iCount = GetPrivateProfileIntA(("RemoteList"), ("count"), 0, configPath.c_str());
@@ -718,10 +741,25 @@ bool CUpdateServer::RecvFileFromClient(string strRemoteIP, DWORD dwWaitSencond, 
 	return true;
 }
 
-// 检查升级文件,是否升级
-bool CUpdateServer::CheckUpdateFile()
+/* 检查升级文件,是否升级
+	由于服务端&客户端生成的Update.xml 算法一致
+	此处简单处理，比较客户端和服务端的Update.xml的MD5值是否一致*/
+// 
+bool CUpdateServer::CheckUpdateFile(std::string strIP)
 {
-	// to do 
+	string strClientXmlPath = m_curPath + "\\" + strIP + UPDATEXML;
+	string strServerXmlPath = m_curPath + UPDATEXML;
+
+	string strClientMD5 = "";
+	string strServerMD5 = "";
+	strClientMD5 = PublicFunction::GetFileMD5(strClientXmlPath);
+	strServerMD5 = PublicFunction::GetFileMD5(strServerXmlPath);
+
+	if (strClientMD5 == strServerMD5 && strServerMD5 != "")
+	{
+		return true;
+	}
+
 	return false;
 }
 
@@ -832,9 +870,13 @@ void CUpdateServer::InitLocalDirToList(CDuiString dir)
 
 	do
 	{
+		string strVersion = "";
+		string strMD5 = "";
+
 		FileInfo fileinfo;
 		if (data.cFileName[0] != _T('.'))
 		{
+			
 			fileinfo.strFileName = data.cFileName;
 			//_tprintf(_T("%s\\%s\n"), )
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -846,11 +888,23 @@ void CUpdateServer::InitLocalDirToList(CDuiString dir)
 			{
 				fileinfo.strFileType = _T("文件");
 				ulLength = (data.nFileSizeHigh * (MAXDWORD + 1)) + data.nFileSizeLow;
-				fileinfo.ulLength = ulLength/1024; 
+				fileinfo.ulLength = ulLength; 
+
+				// 文件过大，易造成计算MD5耗时过多 100M以上不计算
+				if (ulLength < 1024 * 1024 * 100)
+				{
+					CDuiString strPath = dir + _T("\\") + data.cFileName;
+					PublicFunction::GetFileVersion(PublicFunction::W2M(strPath.GetData()), strVersion);
+					strMD5 = PublicFunction::GetFileMD5(PublicFunction::W2M(strPath.GetData()));
+				}
 			}
 			FILETIME ft = data.ftLastWriteTime;
 			SYSTEMTIME st;
-			FileTimeToSystemTime(&ft, &st);
+			_FILETIME localTime;
+
+			// 先将文件时间转换为本地文件时间，再转换为系统时间（防止出现时区差异）
+			FileTimeToLocalFileTime(&ft, &localTime);
+			FileTimeToSystemTime(&localTime, &st);
 			fileinfo.strLastDate.Format(_T("%04d-%02d-%02d %02d:%02d"), st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute);
 
 			g_localFile.push_back(fileinfo);
@@ -943,25 +997,41 @@ LPCTSTR CUpdateServer::GetItemText(CControlUI* pControl, int iIndex, int iSubIte
 				return _T("");
 			}
 			ULONGLONG ulLength = g_localFile[iIndex].ulLength;
+			double dLength = ulLength;
 #ifdef _UNICODE
-			if (ulLength > 1024)
+			if (ulLength < 1024)	// 小于1KB
 			{
-				double dLength = ulLength / 1024;
-				swprintf_s(szBuf, _T("%.2fMB"), dLength);
+				swprintf_s(szBuf, _T("%lld字节"), ulLength);
 			}
-			else
+			else if (ulLength > 1024*1024 && ulLength < (1024*1024*1000))		// 1MB -- 1000MB
 			{
-				swprintf_s(szBuf, _T("%lldKB"), ulLength);
+				swprintf_s(szBuf, _T("%.2fMB"), dLength/(1024 * 1024));
+			}
+			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+			{
+				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+			}
+			else                               // 1KB -- 1MB之间
+			{
+				swprintf_s(szBuf, _T("%.2fKB"), dLength /1024);
 			}
 			
 #else
-			if (ulLength > 1024)
+			if (ulLength < 1024)	// 小于1KB
 			{
-				sprintf_s(szBuf, "%fMB", ulLength / 1024);
+				sprintf_s(szBuf, ("%lld字节"), ulLength);
 			}
-			else
+			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
 			{
-				sprintf_s(szBuf, "%dKB", ulLength);
+				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
+			}
+			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+			{
+				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
+			}
+			else                               // 1KB -- 1MB之间
+			{
+				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
 			}
 #endif
 		}
@@ -1006,36 +1076,41 @@ LPCTSTR CUpdateServer::GetItemText(CControlUI* pControl, int iIndex, int iSubIte
 				return _T("");
 			}
 			ULONGLONG ulLength = g_remoteFile[iIndex].ulLength;
+			double dLength = ulLength;
 #ifdef _UNICODE
-			if (ulLength > 1024 * 1024)
+			if (ulLength < 1024)	// 小于1KB
 			{
-				double dLength = ulLength / (1024*1024);
-				swprintf_s(szBuf, _T("%.2fMB"), dLength);
+				swprintf_s(szBuf, _T("%lld字节"), ulLength);
 			}
-			else if (ulLength > 1024)
+			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
 			{
-				double dLength = ulLength / 1024;
-				swprintf_s(szBuf, _T("%.2fKB"), dLength);
+				swprintf_s(szBuf, _T("%.2fMB"), dLength / (1024 * 1024));
 			}
-
-			else
+			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
 			{
-				swprintf_s(szBuf, _T("%lldByte"), ulLength);
+				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+			}
+			else                               // 1KB -- 1MB之间
+			{
+				swprintf_s(szBuf, _T("%.2fKB"), dLength / 1024);
 			}
 
 #else
-			if (ulLength > 1024 * 1024)
+			if (ulLength < 1024)	// 小于1KB
 			{
-				double dLength = ulLength / (1024 * 1024);
-				swprintf_s(szBuf, _T("%.2fMB"), dLength);
+				sprintf_s(szBuf, ("%lld字节"), ulLength);
 			}
-			else if (ulLength > 1024)
+			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
 			{
-				sprintf_s(szBuf, "%.2fKB", ulLength / 1024);
+				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
 			}
-			else
+			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
 			{
-				sprintf_s(szBuf, "%lldByte", ulLength);
+				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
+			}
+			else                               // 1KB -- 1MB之间
+			{
+				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
 			}
 #endif
 		}
@@ -1176,17 +1251,21 @@ void CUpdateServer::HandleGroupMsg(HWND hDlg, GT_HDR *pHeader)//函数实现体
 			//strLog = strLogHead + _T("收到消息-MT_CHECK_MESG, 更新准备(接收并检查Update.xml文件)...\r\n");
 			UpdateLog(strIP, strLog);
 
+			// 删除原先Update.xml
+			string strXmlPath = m_curPath + "\\" + strIP + UPDATEXML;
+			DeleteFileA(strXmlPath.c_str());
+
 			unsigned int recvthreadID = 0;
 			HANDLE handle = (HANDLE)_beginthreadex(NULL, 0, (_beginthreadex_proc_type)&RecvUpdateFileThreadProc,
 				pHeader, 0, &recvthreadID);
 
-			/*if (false == RecvFileFromClient(strIP, 60, strError))
+			if (WAIT_TIMEOUT == WaitForSingleObject(handle, 30*1000))
 			{
-				MessageBox(NULL, strError, _T("Error"), MB_OK);
-			}*/
+				MessageBox(NULL, strError, _T("接收文件超时."), MB_OK);
+			}
 
-			// 检查 升级文件Update.xml：false -- 不升级，true -- 升级
-			if (false != CheckUpdateFile())
+			// 检查 升级文件Update.xml：false -- 升级，true -- 不升级
+			if (true == CheckUpdateFile(strIP))
 			{
 				UpdateLog(strIP, _T("升级文件检查结果：该执行机不需要升级.\r\n"));
 				g_pTalk->SendText(EXECUTE_RESULT_TYPE_FAILED, 2, MT_CHECKRES_MESG, dwAddress);

@@ -84,7 +84,7 @@ public:
 	static DWORD WINAPI RecvUpdateFileThreadProc(LPVOID lpParameter);
 	static DWORD WINAPI RecvRemoteDirFileThreadProc(LPVOID lpParameter);
 	bool RecvFileFromClient(string strRemoteIP, DWORD dwWaitSencond, CDuiString &error);
-	bool CheckUpdateFile();
+	bool CheckUpdateFile(std::string strIP);
 
 	static DWORD WINAPI SendFileThreadProc(LPVOID lpParameter);
 
@@ -116,6 +116,7 @@ public:
 
 public:
 	string m_curPath = "";			// 当前exe运行路径
+	vector<std::string> m_ExcludeFile;	// 排除的更新文件
 public:
 	CPaintManagerUI m_pm;
 

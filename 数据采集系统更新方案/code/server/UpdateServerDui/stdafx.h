@@ -37,7 +37,9 @@
 #define CONFIG_NAME			"\\config.ini"
 #define SYSFILEINFO			"\\SystemPathInfo.txt"
 #define UPDATELOG			"\\Update.log"
+#define UPDATEXML			"\\Update.xml"
 
+#pragma comment(lib,"version.lib")
 
 using namespace DuiLib;
 

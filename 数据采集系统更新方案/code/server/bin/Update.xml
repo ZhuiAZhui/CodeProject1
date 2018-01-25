@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<AutoUpdate>
+    <FileList>
+        <UpdateFile name="call.txt" type="file" version="" MD5="3d58d71d9288eb00de1c9eb934ae3974" lastwritetime="2008-06-19 02:54" />
+        <UpdateFile name="ContrastCLModule.dll" type="file" version="1, 0, 0, 1" MD5="f7795dbc19dd3edad6d56988d6c6419e" lastwritetime="2007-04-10 22:59" />
+        <UpdateFile name="EleBanlan.ini" type="file" version="" MD5="b34085b81513776be3e99adfab956d39" lastwritetime="2013-10-30 07:51" />
+        <UpdateFile name="ElectronBanlance.dll" type="file" version="1, 0, 0, 1" MD5="7e81b9c8abb1b0efc9f20dcb6319cff5" lastwritetime="2008-04-25 12:32" />
+        <UpdateFile name="GDHConfig.ini" type="file" version="" MD5="0e9c4a63a513d258e12c7c6f708a2c14" lastwritetime="2008-06-19 11:32" />
+        <UpdateFile name="GDHProcess.dll" type="file" version="1, 0, 0, 1" MD5="7ec475a7646e1e3260b81825949b8d8a" lastwritetime="2008-05-23 10:19" />
+        <UpdateFile name="Image" type="dir" lastwritetime="2018-01-02 14:30">
+            <UpdateFile name="b_jqtj.gif" type="file" version="" MD5="b233fe0566ef16a312cad32c18894f56" lastwritetime="2008-08-12 10:44" />
+            <UpdateFile name="b_sctj.gif" type="file" version="" MD5="1e7c2b05bac0c6b9b6ad1880d63d0e07" lastwritetime="2008-08-12 10:44" />
+            <UpdateFile name="b_sjlr.gif" type="file" version="" MD5="32c2a417881f5dc061f25640877b2719" lastwritetime="2008-08-12 10:45" />
+            <UpdateFile name="csbg.png" type="file" version="" MD5="c89ff731b2049dae0c7d82a67f1b0921" lastwritetime="2008-08-28 14:57" />
+            <UpdateFile name="fpbg.png" type="file" version="" MD5="8d776c5760038aef9942bb93c745e1a9" lastwritetime="2008-08-28 11:27" />
+            <UpdateFile name="sjcx.png" type="file" version="" MD5="207053a33e59a8c82893d7784fa165ed" lastwritetime="2008-08-27 16:42" />
+            <UpdateFile name="sjlr.png" type="file" version="" MD5="6f1cf7b863577ace4e6b32f1f3400352" lastwritetime="2008-08-27 16:42" />
+            <UpdateFile name="tuichuxit.png" type="file" version="" MD5="9dd8db548f0e6c4bc9d438ce935ea6be" lastwritetime="2008-09-05 11:51" />
+            <UpdateFile name="zlbg.png" type="file" version="" MD5="cbf33f617c02ea211fb026d94b4fc2e9" lastwritetime="2008-08-27 17:43" />
+        </UpdateFile>
+        <UpdateFile name="KeyBoard.dll" type="file" version="1, 0, 0, 1" MD5="a6828fd9ed021bc5657d2ebbb719bbde" lastwritetime="2004-02-22 14:42" />
+        <UpdateFile name="Log" type="dir" lastwritetime="2013-10-30 07:55" />
+        <UpdateFile name="LuRu.ini" type="file" version="" MD5="bc3ede8db5521f8c6f249906c6d85a57" lastwritetime="2013-11-21 09:13" />
+        <UpdateFile name="Machine.Ini" type="file" version="" MD5="1187ba0df874876dd27e514d368105b9" lastwritetime="2016-01-22 12:12" />
+        <UpdateFile name="mlpstopinfo.txt" type="file" version="" MD5="5000b7a6ed1ebf3376379d4dd3187be5" lastwritetime="2008-06-16 23:21" />
+        <UpdateFile name="NetSupportDll.dll" type="file" version="1, 0, 0, 1" MD5="11716722e4a62bd559e3479fd709f44c" lastwritetime="2008-05-28 09:56" />
+        <UpdateFile name="Note.txt" type="file" version="" MD5="c9102d031713c6826c5c6a05b84f1893" lastwritetime="2008-06-20 08:00" />
+        <UpdateFile name="NoteModule.dll" type="file" version="1, 0, 0, 1" MD5="d1c0b7896154eb8d3dcb94f5a81de91c" lastwritetime="2007-04-10 18:40" />
+        <UpdateFile name="OpcData_pt01.txt" type="file" version="" MD5="3593eb6037fea6068dc7b1a9d8c47519" lastwritetime="2013-11-01 12:51" />
+        <UpdateFile name="OPCDriver.dll" type="file" version="1, 0, 0, 1" MD5="0af4f9de1e9c1044fa6b2892451592d2" lastwritetime="2012-10-09 10:16" />
+        <UpdateFile name="OPCDriver.ini" type="file" version="" MD5="713e4d1e78ebd1e5045bd27fe8d4bfee" lastwritetime="2013-11-01 14:41" />
+        <UpdateFile name="PT2-2.exe" type="file" version="1, 0, 0, 1" MD5="f7330afc3aa2185a89b35df8844cefcc" lastwritetime="2016-01-14 12:10" />
+        <UpdateFile name="PublicFunction.dll" type="file" version="5, 2, 1, 1" MD5="efe54c3615a48f9da5baaca418618cc6" lastwritetime="2005-05-19 10:00" />
+        <UpdateFile name="Query.ini" type="file" version="" MD5="a8f38bd4345ddfc60d32a0bc47163bfb" lastwritetime="2013-11-20 10:12" />
+        <UpdateFile name="QXCLASS.TXT" type="file" version="" MD5="6621438eac1fab7c2f8031962d204d64" lastwritetime="2004-07-06 16:46" />
+        <UpdateFile name="QXCODE.TXT" type="file" version="" MD5="0fee6aff74fb9792e0af7687eee85a72" lastwritetime="2004-07-06 16:48" />
+        <UpdateFile name="QXTreatment.TXT" type="file" version="" MD5="c42d9d3edbe081c5b0af2a722cb2ef33" lastwritetime="2003-11-18 11:27" />
+        <UpdateFile name="RequestModule.dll" type="file" version="1, 0, 0, 1" MD5="33f0ea6d9c35d671475a35e41d2be875" lastwritetime="2006-08-17 14:28" />
+        <UpdateFile name="RunMsg.ini" type="file" version="" MD5="299cfc47a8ffe15da468c1a01da7d0d8" lastwritetime="2016-01-22 12:13" />
+        <UpdateFile name="SaveLog.dll" type="file" version="1, 0, 0, 1" MD5="ef510640268aa0b543b81eeee1f9a47f" lastwritetime="2008-07-17 10:52" />
+        <UpdateFile name="SaveLog.ini" type="file" version="" MD5="5fc49ffaf9c2c9433decabbd0c304645" lastwritetime="2009-11-27 10:11" />
+        <UpdateFile name="ScreenKeyboardNUM.exe" type="file" version="" MD5="7a9d856f802bd040cd17fdbbf2ba3fcd" lastwritetime="2008-05-05 16:58" />
+        <UpdateFile name="StartDC.exe" type="file" version="1, 0, 0, 1" MD5="6300584da979e1710f0bff10687a1d03" lastwritetime="2007-11-07 08:27" />
+        <UpdateFile name="StartExe.ini" type="file" version="" MD5="3e7719bfc6df7403367906d730819c17" lastwritetime="2007-11-06 15:28" />
+        <UpdateFile name="STOPRECORD.DAT" type="file" version="" MD5="560603106e63085751b175601c56af77" lastwritetime="2014-12-19 10:19" />
+        <UpdateFile name="TYPE13A.TXT" type="file" version="" MD5="f0deb35a8d5f1493922e4a2ae8e20a96" lastwritetime="2016-05-26 17:44" />
+        <UpdateFile name="TYPE13A_S.TXT" type="file" version="" MD5="4e6e535d76303d10ddd1264d7cc37621" lastwritetime="2005-03-31 16:23" />
+        <UpdateFile name="WebGUI.dll" type="file" version="1, 0, 0, 1" MD5="54a4d5bd37ab299ea72b158f4eee8d30" lastwritetime="2006-08-09 19:23" />
+        <UpdateFile name="WebInterface.ini" type="file" version="" MD5="74f4eaa7a1683099488351a671e9e981" lastwritetime="2008-06-13 15:41" />
+        <UpdateFile name="WorkTime.DAT" type="file" version="" MD5="f2ccd4588b7671fbeac2072e256bef5d" lastwritetime="2007-10-29 08:30" />
+        <UpdateFile name="ZiJianModule.dll" type="file" version="1, 0, 0, 1" MD5="ef2201a1e4c5838c62ade9f36434ecb6" lastwritetime="2007-04-10 18:41" />
+    </FileList>
+</AutoUpdate>
