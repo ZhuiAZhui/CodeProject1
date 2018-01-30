@@ -31,6 +31,7 @@
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -39,6 +40,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
+    <UseOfAtl>false</UseOfAtl>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -166,6 +168,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ControlEx.h" />
     <ClInclude Include="File64.h" />
     <ClInclude Include="FilesTransfer.h" />
     <ClInclude Include="GroupTalk.h" />
@@ -182,6 +185,7 @@
     <ClInclude Include="UpdateServerDui.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ControlEx.cpp" />
     <ClCompile Include="File64.cpp" />
     <ClCompile Include="FilesTransfer.cpp" />
     <ClCompile Include="GroupTalk.cpp">

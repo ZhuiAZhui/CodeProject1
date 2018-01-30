@@ -6,7 +6,7 @@
 // 文件接收类
 RecvFile::RecvFile()
 {
-	m_savePath == "";
+	m_savePath = "";
 	m_serPort = 0;
 	m_dwErrorCode = 0;
 }

@@ -4,7 +4,6 @@
 
 #include "PublicFunction.h"
 
-#define WM_ADDLISTITEM WM_USER + 50
 #define WM_MODIFYLISTITEM WM_USER + 51
 #define WM_DELETELISTITEM WM_USER + 52
 #define WM_GROUPTALK	WM_USER + 105    
@@ -36,15 +35,252 @@ std::vector<FileInfo> g_remoteFile;
 // UDP 消息
 CGroupTalk* g_pTalk;
 
+
+//////////////////////////////////////////////////////////////////////////
+///
+
+DUI_BEGIN_MESSAGE_MAP(CMainPage, CNotifyPump)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_CLICK, OnClick)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_SELECTCHANGED, OnSelectChanged)
+DUI_ON_MSGTYPE(DUI_MSGTYPE_ITEMCLICK, OnItemClick)
+DUI_END_MESSAGE_MAP()
+
+CMainPage::CMainPage()
+{
+	m_pPaintManager = NULL;
+}
+
+void CMainPage::SetPaintMagager(CPaintManagerUI* pPaintMgr)
+{
+	m_pPaintManager = pPaintMgr;
+}
+
+void CMainPage::OnClick(TNotifyUI& msg)
+{
+
+}
+
+void CMainPage::OnSelectChanged(TNotifyUI &msg)
+{
+
+}
+
+void CMainPage::OnItemClick(TNotifyUI &msg)
+{
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+///
+DUI_BEGIN_MESSAGE_MAP(CUpdateServer, WindowImplBase)
+DUI_END_MESSAGE_MAP()
+
 CUpdateServer::CUpdateServer()
 {
 	InitSocket();//加载2.2版本WinSock库
+	m_running = false;
+
+	m_pMenu = NULL;
+	m_MainPage.SetPaintMagager(&m_pm);
+	//AddVirtualWnd(_T("mainpage"), &m_MainPage);
 }
 
 
 CUpdateServer::~CUpdateServer()
 {
+	m_running = false;
+
+	CMenuWnd::DestroyMenu();
+	if (m_pMenu != NULL) {
+		delete m_pMenu;
+		m_pMenu = NULL;
+	}
+	//RemoveVirtualWnd(_T("mainpage"));
 }
+
+LPCTSTR CUpdateServer::GetWindowClassName() const
+{
+	return _T("MainWnd");
+}
+
+UINT CUpdateServer::GetClassStyle() const
+{
+	return CS_DBLCLKS;
+}
+
+DuiLib::CDuiString CUpdateServer::GetSkinFile()
+{
+	return _T("XML_MAIN");
+}
+
+void CUpdateServer::OnFinalMessage(HWND hWnd)
+{
+	__super::OnFinalMessage(hWnd);
+}
+
+CControlUI* CUpdateServer::CreateControl(LPCTSTR pstrClass)
+{
+	if (lstrcmpi(pstrClass, _T("CircleProgress")) == 0) {
+		return new CCircleProgressUI();
+	}
+	return NULL;
+}
+
+
+void CUpdateServer::InitWindow()
+{
+	// 多语言接口
+	CResourceManager::GetInstance()->SetTextQueryInterface(this);
+	//CResourceManager::GetInstance()->LoadLanguage(_T("lan_cn.xml"));
+	// 皮肤接口
+	//CSkinManager::GetSkinManager()->AddReceiver(this);
+
+	m_pCloseBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("closebtn")));
+	m_pMaxBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("maxbtn")));
+	m_pRestoreBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("restorebtn")));
+	m_pMinBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("minbtn")));
+	//m_pSkinBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("skinbtn")));
+	// 初始化WebBrowser控件
+	/*CWebBrowserUI* pBrowser1 = static_cast<CWebBrowserUI*>(m_pm.FindControl(_T("oneclick_browser1")));
+	pBrowser1->SetWebBrowserEventHandler(this);
+	CWebBrowserUI* pBrowser2 = static_cast<CWebBrowserUI*>(m_pm.FindControl(_T("oneclick_browser2")));
+	pBrowser2->SetWebBrowserEventHandler(this);
+	pBrowser1->NavigateUrl(_T("http://blog.csdn.net/duisharp"));
+	pBrowser2->NavigateUrl(_T("http://www.winradar.com"));*/
+
+	// 动态创建Combo
+	/*CComboUI* pFontSize = static_cast<CComboUI*>(m_pm.FindControl(_T("font_size")));
+	if (pFontSize)
+	{
+		CListLabelElementUI * pElement = new CListLabelElementUI();
+		pElement->SetText(_T("测试长文字"));
+		pElement->SetFixedHeight(30);
+		pElement->SetFixedWidth(120);
+		pFontSize->Add(pElement);
+	}
+	CComboUI* pCombo = new CComboUI();
+	pCombo->SetName(_T("mycombo"));
+	pCombo->SetFixedWidth(80);
+	pCombo->ApplyAttributeList(m_pm.GetStyle(_T("combo_style")));
+	pCombo->SetAttribute(_T("endellipsis"), _T("true"));
+	pCombo->SetAttribute(_T("itemendellipsis"), _T("true"));
+	CContainerUI* pParent = (CContainerUI*)pFontSize->GetParent();
+	pParent->Add(pCombo);
+	if (pCombo)
+	{
+		pCombo->SetFloat(true);
+		pCombo->SetFixedXY(CDuiSize(140, 0));
+		pCombo->SetItemFont(2);
+		CListLabelElementUI * pElement = new CListLabelElementUI();
+		pElement->SetText(_T("动态数据动态数据"));
+		pElement->SetFixedHeight(30);
+		pElement->SetFixedWidth(120);
+		pCombo->Add(pElement);
+		pCombo->SelectItem(0);
+	}
+
+	// List控件添加元素
+	CListUI* pList = static_cast<CListUI*>(m_pm.FindControl(_T("listview")));
+	CListContainerElementUI* pListItem = new CListContainerElementUI();
+	pListItem->SetChildVAlign(DT_VCENTER);
+	pListItem->SetFixedHeight(30);
+	pListItem->SetManager(&m_pm, NULL, false);
+	pListItem->SetFixedWidth(100);
+	pList->Add(pListItem);
+	CButtonUI* pBtn1 = new CButtonUI();
+	pBtn1->SetManager(&m_pm, NULL, false);
+	pBtn1->SetAttribute(_T("style"), _T("btn_style"));
+	pBtn1->SetText(_T("代码阿呆"));
+	pBtn1->SetFixedHeight(20);
+	pBtn1->SetFixedWidth(30);
+	pListItem->Add(pBtn1);
+	CButtonUI* pBtn2 = new CButtonUI();
+	pBtn2->SetManager(&m_pm, NULL, false);
+	pBtn2->SetAttribute(_T("style"), _T("btn_style"));
+	pBtn2->SetText(_T("20001"));
+	pListItem->Add(pBtn2);
+
+	CDialogBuilder builder1;
+	CListContainerElementUI* pListItem1 = (CListContainerElementUI*)builder1.Create(_T("listitem.xml"), NULL, this, &m_pm, NULL);
+
+	pList->Add(pListItem1);
+	CControlUI* pLabel = pListItem1->FindSubControl(_T("troy"));
+	if (pLabel != NULL) pLabel->SetText(_T("abc_troy"));
+	for (int i = 0; i < 20; i++)
+	{
+		CListTextElementUI* pItem = new CListTextElementUI();
+		pItem->SetFixedHeight(30);
+		pList->Add(pItem);
+		pItem->SetText(0, _T("张三"));
+		pItem->SetText(1, _T("1000"));
+		pItem->SetText(2, _T("100"));
+	}
+
+	CTreeViewUI* pTreeView = static_cast<CTreeViewUI*>(m_pm.FindControl(_T("treeview")));
+	CTreeNodeUI* pItem = new CTreeNodeUI();
+	pItem->SetFixedHeight(30);
+	pItem->SetItemText(_T("动态添加"));
+	pTreeView->AddAt(pItem, 3);
+	COptionUI* pRadio = new COptionUI();
+	pRadio->SetText(_T("单选按钮"));
+	pItem->Add(pRadio);
+	pRadio->SetAttribute(_T("Style"), _T("cb_style"));
+	pItem->SetAttribute(_T("itemattr"), _T("valign=&quot;center&quot;"));
+	pItem->SetAttribute(_T("Style"), _T("treeview_style"));
+
+	CDialogBuilder builder;
+	CControlUI* pParentItem = NULL;
+	CTreeNodeUI* pTreeItem = (CTreeNodeUI*)builder.Create(_T("treeitem.xml"), NULL, this, &m_pm, pParentItem);
+	if (pParentItem == NULL) pTreeView->Add(pTreeItem);
+
+	// 图表控件
+	CChartViewUI *pHistpgramView = static_cast<CChartViewUI*>(m_pm.FindControl(_T("ChartView_Histpgram")));
+	if (NULL != pHistpgramView)
+	{
+		pHistpgramView->Add(_T("1月{c #FE5900}13%{/c}"), 13);
+		pHistpgramView->Add(_T("2月{c #FE5900}11%{/c}"), 11);
+		pHistpgramView->Add(_T("3月{c #FE5900}32%{/c}"), 32);
+		pHistpgramView->Add(_T("4月{c #FE5900}17%{/c}"), 17);
+		pHistpgramView->Add(_T("5月{c #FE5900}8%{/c}"), 8);
+		pHistpgramView->Add(_T("6月{c #FE5900}12%{/c}"), 12);
+	}
+
+	CChartViewUI *pPieView = static_cast<CChartViewUI*>(m_pm.FindControl(_T("ChartView_Pie")));
+	if (NULL != pPieView)
+	{
+		pPieView->Add(_T("北京{c #FE5900}35%{/c}"), 35);
+		pPieView->Add(_T("上海{c #FE5900}38%{/c}"), 38);
+		pPieView->Add(_T("广州{c #FE5900}35%{/c}"), 35);
+		pPieView->Add(_T("香港{c #FE5900}15%{/c}"), 15);
+	}*/
+
+	// 滚动文字
+	//CRollTextUI* pRollText = (CRollTextUI*)m_pm.FindControl(_T("rolltext"));
+	//pRollText->SetText(_T("超过5000万人使用\n适用于 Chrome 的免费的广告拦截器\n可阻止所有烦人的广告及恶意软件和跟踪。"));
+	//pRollText->BeginRoll(ROLLTEXT_UP, 200, 20);		//运动方式，速度，时间
+
+	//												// 调色板使用
+	//CColorPaletteUI* pColorPalette = (CColorPaletteUI*)m_pm.FindControl(_T("Pallet"));
+	//pColorPalette->SetSelectColor(0xff0199cb);
+
+	Init();
+	// 拓展List -- remote list
+	//m_pRemoteList = static_cast<CListExUI*>(m_pm.FindControl(_T("machineList")));
+	//m_pRemoteList->InitListCtrl();
+	/*for (int i = 0; i < 10; i++)
+	{
+		CListTextExtElementUI* pItem = new CListTextExtElementUI();
+		pItem->SetFixedHeight(30);
+		pListEx->Add(pItem);
+		pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+		pItem->SetText(1, _T("张三"));
+		pItem->SetText(2, _T("1000"));
+		pItem->SetText(3, _T("100"));
+	}*/
+	// 注册托盘图标
+	//m_trayIcon.CreateTrayIcon(m_hWnd, IDR_MAINFRAME, _T("Duilib演示大全"));
+}
+
 
 void CUpdateServer::Init()
 {
@@ -123,7 +359,10 @@ void CUpdateServer::Init()
 		g_pTalk = new CGroupTalk(GetHWND(), ::inet_addr(strMultiAddr.c_str()), usMultiPort, MSG_FROM_SERVER);
 	}
 
-	m_pRemoteList = static_cast<CListUI*>(m_pm.FindControl(_T("machineList")));
+	// 拓展List -- remote list
+	m_pRemoteList = static_cast<CListExUI*>(m_pm.FindControl(_T("machineList")));
+	m_pRemoteList->InitListCtrl();
+	//m_pRemoteList = static_cast<CListUI*>(m_pm.FindControl(_T("machineList")));
 	m_pHostEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("host")));
 	m_pFileportEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("fileport")));
 	m_pMsgportEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("msgport")));
@@ -142,29 +381,37 @@ void CUpdateServer::Init()
 
 	for (int index = 0;index < g_host.size(); index++)
 	{
-		int count = m_pRemoteList->GetCount();
-		m_pRemoteList->SetTextCallback(this);
+		//int count = m_pRemoteList->GetCount();
 
-		CListTextElementUI* pListElement = new CListTextElementUI;
-		pListElement->SetTag(count);
-		if (pListElement != NULL)
-		{
-			::PostMessage(GetHWND(), WM_ADDLISTITEM, RemoteList, (LPARAM)pListElement);
-		}
+		CListTextExtElementUI* pItem = new CListTextExtElementUI();
+		pItem->SetFixedHeight(30);
+		m_pRemoteList->Add(pItem);
+
+		pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+		pItem->SetText(1, g_host[index]);
+
+		TCHAR szBuf[MAX_PATH] = { 0 };
+		_stprintf_s(szBuf, _T("%d"), g_fileport[index]);
+
+		pItem->SetText(2, szBuf);
+		_stprintf_s(szBuf, _T("%d"), g_msgport[index]);
+		pItem->SetText(3, szBuf);
 	}
 }
 
 void CUpdateServer::Notify(TNotifyUI& msg)
 {
 	if (msg.sType == _T("windowinit"))
-		OnPrepare(msg);
+	{
+	}
 	else if (msg.sType == _T("click"))
 	{
 		if (msg.pSender->GetName() == _T("closebtn"))
 		{
-			// 释放控件，发送离开消息
-			delete g_pTalk;
-			PostQuitMessage(0);
+			if(IDYES == MessageBox(m_hWnd, _T("确定退出数据采集系统更新程序？"), _T("提示"), MB_YESNO))
+			{
+				::DestroyWindow(m_hWnd);
+			}			
 			return;
 		}
 		else if (msg.pSender->GetName() == _T("minbtn"))
@@ -209,7 +456,9 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 		}
 		else if (msg.pSender->GetName() == _T("comparebtn"))
 		{
-			g_pTalk->SendMessageTest();
+			// 开启批量更新任务
+			BatStartUpdate();
+			//g_pTalk->SendMessageTest();
 		}
 	}
 	else if (msg.sType == _T("return"))
@@ -246,7 +495,7 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 
 		// 点击执行机表数据，显示到edit框中
 		if (pListElement && pListElement->GetOwner() == m_pRemoteList)
-		{
+		{			
 			int iSel = m_pRemoteList->GetCurSel();	// 此行代码，有bug。点击事件需要点击两次，界面才有响应正确的行
 			if (iSel < 0) return;
 			//int iIndex = msg.pSender->GetTag();    // 此行代码，在删除行场景下有bug：
@@ -289,130 +538,210 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 	//}
 }
 
-LRESULT CUpdateServer::OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	LONG styleValue = ::GetWindowLong(*this, GWL_STYLE);
-	styleValue &= ~WS_CAPTION;
-	::SetWindowLong(*this, GWL_STYLE, styleValue | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-
-	m_pm.Init(m_hWnd);
-	CDialogBuilder builder;
-	CControlUI* pRoot = builder.Create(_T("UI.xml"), (UINT)0, NULL, &m_pm);
-	ASSERT(pRoot && "Failed to parse XML");
-	m_pm.AttachDialog(pRoot);
-	m_pm.AddNotifier(this);
-
-	Init();
-	return 0;
-}
 
 LRESULT CUpdateServer::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
+	// 释放控件，发送离开消息
+	delete g_pTalk;
+
 	::PostQuitMessage(0L);
-
 	bHandled = FALSE;
 	return 0;
 }
 
-LRESULT CUpdateServer::OnNcActivate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+
+void CUpdateServer::OnLClick(CControlUI *pControl)
 {
-	if (::IsIconic(*this)) bHandled = FALSE;
-	return (wParam == 0) ? TRUE : FALSE;
-}
-
-LRESULT CUpdateServer::OnNcCalcSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	return 0;
-}
-
-LRESULT CUpdateServer::OnNcPaint(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	return 0;
-}
-
-LRESULT CUpdateServer::OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	POINT pt; pt.x = GET_X_LPARAM(lParam); pt.y = GET_Y_LPARAM(lParam);
-	::ScreenToClient(*this, &pt);
-
-	RECT rcClient;
-	::GetClientRect(*this, &rcClient);
-
-	if (!::IsZoomed(*this)) {
-		RECT rcSizeBox = m_pm.GetSizeBox();
-		if (pt.y < rcClient.top + rcSizeBox.top) {
-			if (pt.x < rcClient.left + rcSizeBox.left) return HTTOPLEFT;
-			if (pt.x > rcClient.right - rcSizeBox.right) return HTTOPRIGHT;
-			return HTTOP;
+	CDuiString sName = pControl->GetName();
+	if (sName.CompareNoCase(_T("homepage_btn")) == 0)
+	{
+		// 动态创建Combo
+		CComboUI* pFontSize = static_cast<CComboUI*>(m_pm.FindControl(_T("mycombo")));
+		if (pFontSize)
+		{
+			pFontSize->RemoveAll();
+			CListLabelElementUI * pElement = new CListLabelElementUI();
+			pElement->SetText(_T("测试长文字"));
+			pElement->SetFixedHeight(30);
+			pElement->SetFixedWidth(120);
+			pFontSize->Add(pElement);
+			pFontSize->NeedParentUpdate();
 		}
-		else if (pt.y > rcClient.bottom - rcSizeBox.bottom) {
-			if (pt.x < rcClient.left + rcSizeBox.left) return HTBOTTOMLEFT;
-			if (pt.x > rcClient.right - rcSizeBox.right) return HTBOTTOMRIGHT;
-			return HTBOTTOM;
+		//CComboUI* pFontSize = static_cast<CComboUI*>(m_pm.FindControl(_T("mycombo")));
+		//if(pFontSize)
+		//{
+		//	pFontSize->SetFixedXY(CDuiSize(pFontSize->GetFixedXY().cx + 5, pFontSize->GetFixedXY().cy));
+		//}
+		//ShellExecute(NULL, _T("open"), _T("https://github.com/qdtroy"), NULL, NULL, SW_SHOW);
+	}
+	else if (sName.CompareNoCase(_T("button1")) == 0)
+	{
+		CEditUI* pEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("edit3")));
+		TCHAR* pstrText = (TCHAR*)pEdit->GetText().GetData();
+		if (pstrText != NULL && lstrlen(pstrText) > 0) {
+			double fEdit = _ttof(pstrText);
+			MessageBox(m_hWnd, pstrText, _T(""), 0);
 		}
-		if (pt.x < rcClient.left + rcSizeBox.left) return HTLEFT;
-		if (pt.x > rcClient.right - rcSizeBox.right) return HTRIGHT;
 	}
-
-	RECT rcCaption = m_pm.GetCaptionRect();
-	if (pt.x >= rcClient.left + rcCaption.left && pt.x < rcClient.right - rcCaption.right \
-		&& pt.y >= rcCaption.top && pt.y < rcCaption.bottom) {
-		CControlUI* pControl = static_cast<CControlUI*>(m_pm.FindControl(pt));
-		if (pControl && _tcscmp(pControl->GetClass(), DUI_CTR_BUTTON) != 0 &&
-			_tcscmp(pControl->GetClass(), DUI_CTR_OPTION) != 0 &&
-			_tcscmp(pControl->GetClass(), DUI_CTR_TEXT) != 0 &&
-			_tcscmp(pControl->GetClass(), DUI_CTR_EDIT) != 0)
-			return HTCAPTION;
+	/*else if (sName.CompareNoCase(_T("popwnd_btn")) == 0)
+	{
+		CPopWnd* pPopWnd = new CPopWnd();
+		pPopWnd->Create(m_hWnd, _T("透明窗口演示"), WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW, 0, 0, 800, 572);
+		pPopWnd->CenterWindow();
 	}
+	else if (sName.CompareNoCase(_T("modal_popwnd_btn")) == 0)
+	{
+		CPopWnd* pPopWnd = new CPopWnd();
+		pPopWnd->Create(m_hWnd, _T("透明窗口演示"), WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW, 0, 0, 800, 572);
+		pPopWnd->CenterWindow();
+		pPopWnd->ShowModal();
+	}*/
 
-	return HTCLIENT;
+	else if (sName.CompareNoCase(_T("qqgroup_btn")) == 0)
+	{
+		TCHAR szPath[MAX_PATH] = { 0 };
+		SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, NULL, 0, szPath);
+		CDuiString sIEPath;
+		sIEPath.Format(_T("%s\\Internet Explorer\\iexplore.exe"), szPath);
+		ShellExecute(NULL, _T("open"), sIEPath, _T("http://jq.qq.com/?_wv=1027&k=cDTUzr"), NULL, SW_SHOW);
+	}
+	else if (sName.CompareNoCase(_T("qq_btn")) == 0)
+	{
+		TCHAR szPath[MAX_PATH] = { 0 };
+		SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, NULL, 0, szPath);
+		CDuiString sIEPath;
+		sIEPath.Format(_T("%s\\Internet Explorer\\iexplore.exe"), szPath);
+		ShellExecute(NULL, _T("open"), sIEPath, _T("tencent://Message/?Uin=656067418&Menu=yes"), NULL, SW_SHOW);
+	}
+	else if (sName.CompareNoCase(_T("menubtn")) == 0)
+	{
+		CMenuWnd::GetGlobalContextMenuObserver().SetMenuCheckInfo(&m_MenuInfos);
+
+		if (m_pMenu != NULL) {
+			delete m_pMenu;
+			m_pMenu = NULL;
+		}
+		m_pMenu = new CMenuWnd();
+		CDuiPoint point;
+		::GetCursorPos(&point);
+		m_pMenu->Init(NULL, _T("menu.xml"), point, &m_pm);
+		// 设置状态
+		CMenuWnd::SetMenuItemInfo(_T("qianting"), true);
+
+		CMenuUI* rootMenu = m_pMenu->GetMenuUI();
+		if (rootMenu != NULL)
+		{
+			CMenuElementUI* pNew = new CMenuElementUI;
+			pNew->SetName(_T("Menu_Dynamic"));
+			pNew->SetText(_T("动态一级菜单"));
+			pNew->SetShowExplandIcon(true);
+			pNew->SetIcon(_T("WebSit.png"));
+			pNew->SetIconSize(16, 16);
+			rootMenu->Add(pNew);
+
+			//CMenuElementUI* pTempMenu = (CMenuElementUI*)rootMenu->GetItemAt(0);
+			//CMenuElementUI* pSubNew = new CMenuElementUI;
+			//pSubNew->SetText(_T("动态二级菜单"));
+			//pSubNew->SetName(_T("Menu_Dynamic"));
+			//pSubNew->SetIcon(_T("Virus.png"));
+			//pSubNew->SetIconSize(16,16);
+			//pSubNew->SetOwner(pTempMenu->GetParent());
+			//pTempMenu->Add(pSubNew);
+
+			CMenuElementUI* pNew2 = new CMenuElementUI;
+			pNew2->SetName(_T("Menu_Dynamic"));
+			pNew2->SetText(_T("动态一级菜单2"));
+			rootMenu->AddAt(pNew2, 2);
+		}
+
+		// 动态添加后重新设置菜单的大小
+		m_pMenu->ResizeMenu();
+	}
+	else if (sName.CompareNoCase(_T("dpi_btn")) == 0)
+	{
+		int nDPI = _ttoi(pControl->GetUserData());
+		m_pm.SetDPI(nDPI);
+	}
 }
 
-LRESULT CUpdateServer::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+
+LRESULT CUpdateServer::HandleCustomMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-	SIZE szRoundCorner = m_pm.GetRoundCorner();
-	if (!::IsIconic(*this) && (szRoundCorner.cx != 0 || szRoundCorner.cy != 0)) {
-		CDuiRect rcWnd;
-		::GetWindowRect(*this, &rcWnd);
-		rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-		rcWnd.right++; rcWnd.bottom++;
-		RECT rc = { rcWnd.left, rcWnd.top + szRoundCorner.cx, rcWnd.right, rcWnd.bottom };
-		HRGN hRgn1 = ::CreateRectRgnIndirect(&rc);
-		HRGN hRgn2 = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom - szRoundCorner.cx, szRoundCorner.cx, szRoundCorner.cy);
-		::CombineRgn(hRgn1, hRgn1, hRgn2, RGN_OR);
-		::SetWindowRgn(*this, hRgn1, TRUE);
-		::DeleteObject(hRgn1);
-		::DeleteObject(hRgn2);
+	// 关闭窗口，退出程序
+	if (uMsg == WM_DESTROY)
+	{
+		::PostQuitMessage(0L);
+		bHandled = TRUE;
+		return 0;
 	}
-
-	bHandled = FALSE;
-	return 0;
-}
-
-LRESULT CUpdateServer::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT lRes = 0;
-	BOOL bHandled = TRUE;
-	switch (uMsg) {
-	case WM_ADDLISTITEM:   lRes = OnAddListItem(uMsg, wParam, lParam, bHandled); break;
-	case WM_CREATE:        lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
-	case WM_DESTROY:       lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
-	case WM_NCACTIVATE:    lRes = OnNcActivate(uMsg, wParam, lParam, bHandled); break;
-	case WM_NCCALCSIZE:    lRes = OnNcCalcSize(uMsg, wParam, lParam, bHandled); break;
-	case WM_NCPAINT:       lRes = OnNcPaint(uMsg, wParam, lParam, bHandled); break;
-	case WM_NCHITTEST:     lRes = OnNcHitTest(uMsg, wParam, lParam, bHandled); break;
-	case WM_SIZE:          lRes = OnSize(uMsg, wParam, lParam, bHandled); break;
-	case WM_SYSCOMMAND:    lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
-	case WM_GROUPTALK:	   lRes = OnWMGROUPTALK(uMsg, wParam, lParam, bHandled); break;
-	case FILE_TRANSFER_SUCCESS:		lRes = OnFileTranferOver(uMsg, wParam, lParam, bHandled); break;
-	//case WM_RBUTTONDOWN:   break;
-	default:
+	else if (uMsg == WM_TIMER)
+	{
 		bHandled = FALSE;
 	}
-	if (bHandled) return lRes;
-	if (m_pm.MessageHandler(uMsg, wParam, lParam, lRes)) return lRes;
-	return CWindowWnd::HandleMessage(uMsg, wParam, lParam);
+	else if (uMsg == WM_SHOWWINDOW)
+	{
+		bHandled = FALSE;
+		m_pMinBtn->NeedParentUpdate();
+		InvalidateRect(m_hWnd, NULL, TRUE);
+	}
+	else if (uMsg == WM_SYSKEYDOWN || uMsg == WM_KEYDOWN) {
+		int a = 0;
+	}
+	else if (uMsg == WM_MENUCLICK)
+	{		
+		bHandled = TRUE;
+		return 0;
+	}
+	else if (uMsg == UIMSG_TRAYICON)
+	{
+		
+	}
+	else if (uMsg == WM_GROUPTALK)
+	{
+		OnWMGROUPTALK(uMsg, wParam, lParam, bHandled);
+	}
+	else if (uMsg == FILE_TRANSFER_SUCCESS)
+	{
+		OnFileTranferOver(uMsg, wParam, lParam, bHandled);
+	}
+	bHandled = FALSE;
+	return 0;
 }
+
+
+//LRESULT CUpdateServer::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
+//{
+//	LRESULT lRes = 0;
+//	BOOL bHandled = TRUE;
+//	switch (uMsg) {
+//	case WM_ADDLISTITEM:   lRes = OnAddListItem(uMsg, wParam, lParam, bHandled); break;
+//	case WM_CREATE:        lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
+//	case WM_DESTROY:       lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
+//	case WM_NCACTIVATE:    lRes = OnNcActivate(uMsg, wParam, lParam, bHandled); break;
+//	case WM_NCCALCSIZE:    lRes = OnNcCalcSize(uMsg, wParam, lParam, bHandled); break;
+//	case WM_NCPAINT:       lRes = OnNcPaint(uMsg, wParam, lParam, bHandled); break;
+//	case WM_NCHITTEST:     lRes = OnNcHitTest(uMsg, wParam, lParam, bHandled); break;
+//	case WM_SIZE:          lRes = OnSize(uMsg, wParam, lParam, bHandled); break;
+//	case WM_SYSCOMMAND:    lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
+//	case WM_GROUPTALK:	   lRes = OnWMGROUPTALK(uMsg, wParam, lParam, bHandled); break;
+//	case FILE_TRANSFER_SUCCESS:		lRes = OnFileTranferOver(uMsg, wParam, lParam, bHandled); break;
+//	//case WM_RBUTTONDOWN:   break;
+//	default:
+//		bHandled = FALSE;
+//	}
+//	if (bHandled) return lRes;
+//	if (m_pm.MessageHandler(uMsg, wParam, lParam, lRes)) return lRes;
+//	return CWindowWnd::HandleMessage(uMsg, wParam, lParam);
+//}
+
+LRESULT CUpdateServer::OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
+{
+	bHandled = FALSE;
+	return 0;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////
 
 void CUpdateServer::OnAddRemote()
 {
@@ -478,16 +807,14 @@ void CUpdateServer::OnAddRemote()
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
-	// 设置list回调函数，绘制list
-	int count = m_pRemoteList->GetCount();
-	m_pRemoteList->SetTextCallback(this);
+	CListTextElementUI* pItem = new CListTextElementUI();
+	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+	pItem->SetFixedHeight(30);
+	m_pRemoteList->Add(pItem);
 
-	CListTextElementUI* pListElement = new CListTextElementUI;
-	pListElement->SetTag(count);
-	if (pListElement != NULL)
-	{
-		::PostMessage(GetHWND(), WM_ADDLISTITEM, RemoteList, (LPARAM)pListElement);
-	}
+	pItem->SetText(1, strhost);
+	pItem->SetText(2, strfileport);
+	pItem->SetText(3, strmsgport);
 }
 
 void CUpdateServer::OnModifyRemote()
@@ -529,14 +856,14 @@ void CUpdateServer::OnModifyRemote()
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
-	m_pRemoteList->SetTextCallback(this);
+	CListTextElementUI* pItem = new CListTextElementUI();
+	pItem->SetFixedHeight(30);
+	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+	m_pRemoteList->Add(pItem);
 
-	CListTextElementUI* pListElement = new CListTextElementUI;
-	pListElement->SetTag(index);
-	if (pListElement != NULL)
-	{
-		::PostMessage(GetHWND(), WM_ADDLISTITEM, RemoteList, (LPARAM)pListElement);
-	}
+	pItem->SetText(1, strhost);
+	pItem->SetText(2, strfileport);
+	pItem->SetText(3, strmsgport);
 }
 
 void CUpdateServer::OnDeleteRemote()
@@ -566,7 +893,7 @@ void CUpdateServer::OnDeleteRemote()
 			bIsExisted = true;
 
 			//m_pRemoteList->SetDelayedDestroy(false);
-			m_pRemoteList->RemoveAt(index, true);
+			m_pRemoteList->RemoveAt(index);
 			//m_pRemoteList->SetTag(index);
 			//m_pRemoteList->NeedUpdate();
 			g_host.erase(g_host.begin() + index);
@@ -876,7 +1203,6 @@ void CUpdateServer::InitLocalDirToList(CDuiString dir)
 		FileInfo fileinfo;
 		if (data.cFileName[0] != _T('.'))
 		{
-			
 			fileinfo.strFileName = data.cFileName;
 			//_tprintf(_T("%s\\%s\n"), )
 			if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -908,15 +1234,39 @@ void CUpdateServer::InitLocalDirToList(CDuiString dir)
 			fileinfo.strLastDate.Format(_T("%04d-%02d-%02d %02d:%02d"), st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute);
 
 			g_localFile.push_back(fileinfo);
-			int count = m_pLocalDirList->GetCount();
-			m_pLocalDirList->SetTextCallback(this);
 
-			CListTextElementUI* pListElement = new CListTextElementUI;
-			pListElement->SetTag(count);
-			if (pListElement != NULL)
+			CListTextElementUI* pItem = new CListTextElementUI();
+			pItem->SetFixedHeight(30);
+			m_pLocalDirList->Add(pItem);
+
+			pItem->SetText(0, fileinfo.strFileName);
+			pItem->SetText(1, fileinfo.strLastDate);
+			pItem->SetText(2, fileinfo.strFileType);
+
+
+			TCHAR szBuf[MAX_PATH] = { 0 };
+			if (strFileType == _T("文件"))
 			{
-				::PostMessageW(GetHWND(), WM_ADDLISTITEM, LocalDirList, (LPARAM)pListElement);
+
+				double dLength = ulLength;
+				if (ulLength < 1024)	// 小于1KB
+				{
+					swprintf_s(szBuf, _T("%lld字节"), ulLength);
+				}
+				else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
+				{
+					swprintf_s(szBuf, _T("%.2fMB"), dLength / (1024 * 1024));
+				}
+				else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+				{
+					swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+				}
+				else                               // 1KB -- 1MB之间
+				{
+					swprintf_s(szBuf, _T("%.2fKB"), dLength / 1024);
+				}
 			}
+			pItem->SetText(3, szBuf);
 		} 
 		
 	} while (::FindNextFile(handle, &data) != 0 && ::GetLastError() != ERROR_NO_MORE_FILES);
@@ -953,247 +1303,227 @@ void CUpdateServer::InitRemoteDirToList(int index)
 /*
 * 关键的回调函数，IListCallbackUI 中的一个虚函数，渲染时候会调用,在[1]中设置了回调对象
 */
-LPCTSTR CUpdateServer::GetItemText(CControlUI* pControl, int iIndex, int iSubItem)
-{
-	TCHAR szBuf[MAX_PATH] = { 0 };
-	CDuiString strName = pControl->GetParent()->GetParent()->GetName();
-
-	// 本地站点的目录结构 && 防止vector容器越界
-	if (strName == _T("localfilelist") && iIndex < g_localFile.size())
-	{		
-		switch (iSubItem)
-		{
-		case 0:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_localFile[iIndex].strFileName);
-#else
-			_stprintf(szBuf, g_localFile[iIndex].strFileName.c_str());
-#endif
-		}
-		break;
-		case 1:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_localFile[iIndex].strLastDate);
-#else
-			_stprintf(szBuf, g_localFile[iIndex].strLastDate.c_str());
-#endif
-		}
-		break;
-		case 2:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_localFile[iIndex].strFileType);
-#else
-			_stprintf(szBuf, g_localFile[iIndex].strFileType.c_str());
-#endif
-		}
-		break;
-		case 3:
-		{
-			if (g_localFile[iIndex].strFileType == _T("文件夹"))
-			{
-				return _T("");
-			}
-			ULONGLONG ulLength = g_localFile[iIndex].ulLength;
-			double dLength = ulLength;
-#ifdef _UNICODE
-			if (ulLength < 1024)	// 小于1KB
-			{
-				swprintf_s(szBuf, _T("%lld字节"), ulLength);
-			}
-			else if (ulLength > 1024*1024 && ulLength < (1024*1024*1000))		// 1MB -- 1000MB
-			{
-				swprintf_s(szBuf, _T("%.2fMB"), dLength/(1024 * 1024));
-			}
-			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
-			{
-				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
-			}
-			else                               // 1KB -- 1MB之间
-			{
-				swprintf_s(szBuf, _T("%.2fKB"), dLength /1024);
-			}
-			
-#else
-			if (ulLength < 1024)	// 小于1KB
-			{
-				sprintf_s(szBuf, ("%lld字节"), ulLength);
-			}
-			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
-			{
-				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
-			}
-			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
-			{
-				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
-			}
-			else                               // 1KB -- 1MB之间
-			{
-				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
-			}
-#endif
-		}
-		break;
-		}
-	}
-	else if (strName == _T("remotefilelist") && iIndex < g_remoteFile.size())
-	{
-		switch (iSubItem)
-		{
-		case 0:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_remoteFile[iIndex].strFileName);
-#else
-			_stprintf(szBuf, g_remoteFile[iIndex].strFileName.c_str());
-#endif
-		}
-		break;
-		case 1:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_remoteFile[iIndex].strLastDate);
-#else
-			_stprintf(szBuf, g_remoteFile[iIndex].strLastDate.c_str());
-#endif
-		}
-		break;
-		case 2:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_remoteFile[iIndex].strFileType);
-#else
-			_stprintf(szBuf, g_remoteFile[iIndex].strFileType.c_str());
-#endif
-		}
-		break;
-		case 3:
-		{
-			if (g_remoteFile[iIndex].strFileType == _T("文件夹"))
-			{
-				return _T("");
-			}
-			ULONGLONG ulLength = g_remoteFile[iIndex].ulLength;
-			double dLength = ulLength;
-#ifdef _UNICODE
-			if (ulLength < 1024)	// 小于1KB
-			{
-				swprintf_s(szBuf, _T("%lld字节"), ulLength);
-			}
-			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
-			{
-				swprintf_s(szBuf, _T("%.2fMB"), dLength / (1024 * 1024));
-			}
-			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
-			{
-				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
-			}
-			else                               // 1KB -- 1MB之间
-			{
-				swprintf_s(szBuf, _T("%.2fKB"), dLength / 1024);
-			}
-
-#else
-			if (ulLength < 1024)	// 小于1KB
-			{
-				sprintf_s(szBuf, ("%lld字节"), ulLength);
-			}
-			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
-			{
-				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
-			}
-			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
-			{
-				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
-			}
-			else                               // 1KB -- 1MB之间
-			{
-				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
-			}
-#endif
-		}
-		break;
-		}
-	}
-	else if (strName == _T("machineList") && iIndex < g_host.size() )
-	{
-		switch (iSubItem)
-		{
-		case 0:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, g_host[iIndex]);
-			/*int iLen = g_host[iIndex].length();
-			LPWSTR lpText = new WCHAR[iLen + 1];
-			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
-			::MultiByteToWideChar(CP_ACP, 0, g_host[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
-			_stprintf(szBuf, lpText);
-			delete[] lpText;*/
-#else
-			_stprintf(szBuf, g_host[iIndex].c_str());
-#endif
-		}
-		break;
-		case 1:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, _T("%d"), g_fileport[iIndex]);
-			/*int iLen = g_fileport[iIndex].length();
-			LPWSTR lpText = new WCHAR[iLen + 1];
-			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
-			::MultiByteToWideChar(CP_ACP, 0, g_fileport[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
-			_stprintf(szBuf, lpText);
-			delete[] lpText;*/
-#else
-			_stprintf(szBuf, g_fileport[iIndex].c_str());
-#endif
-		}
-		break;
-		case 2:
-		{
-#ifdef _UNICODE		
-			_stprintf_s(szBuf, _T("%d"), g_msgport[iIndex]);
-			/*int iLen = g_msgport[iIndex].length();
-			LPWSTR lpText = new WCHAR[iLen + 1];
-			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
-			::MultiByteToWideChar(CP_ACP, 0, g_msgport[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
-			_stprintf(szBuf, lpText);
-			delete[] lpText;*/
-#else
-			_stprintf(szBuf, g_msgport[iIndex].c_str());
-#endif
-		}
-		break;
-		}
-	}
-
-	pControl->SetUserData(szBuf);
-	return pControl->GetUserData();
-}
+//LPCTSTR CUpdateServer::GetItemText(CControlUI* pControl, int iIndex, int iSubItem)
+//{
+//	TCHAR szBuf[MAX_PATH] = { 0 };
+//	CDuiString strName = pControl->GetParent()->GetParent()->GetName();
+//
+//	// 本地站点的目录结构 && 防止vector容器越界
+//	if (strName == _T("localfilelist") && iIndex < g_localFile.size())
+//	{		
+//		switch (iSubItem)
+//		{
+//		case 0:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_localFile[iIndex].strFileName);
+//#else
+//			_stprintf(szBuf, g_localFile[iIndex].strFileName.c_str());
+//#endif
+//		}
+//		break;
+//		case 1:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_localFile[iIndex].strLastDate);
+//#else
+//			_stprintf(szBuf, g_localFile[iIndex].strLastDate.c_str());
+//#endif
+//		}
+//		break;
+//		case 2:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_localFile[iIndex].strFileType);
+//#else
+//			_stprintf(szBuf, g_localFile[iIndex].strFileType.c_str());
+//#endif
+//		}
+//		break;
+//		case 3:
+//		{
+//			if (g_localFile[iIndex].strFileType == _T("文件夹"))
+//			{
+//				return _T("");
+//			}
+//			ULONGLONG ulLength = g_localFile[iIndex].ulLength;
+//			double dLength = ulLength;
+//#ifdef _UNICODE
+//			if (ulLength < 1024)	// 小于1KB
+//			{
+//				swprintf_s(szBuf, _T("%lld字节"), ulLength);
+//			}
+//			else if (ulLength > 1024*1024 && ulLength < (1024*1024*1000))		// 1MB -- 1000MB
+//			{
+//				swprintf_s(szBuf, _T("%.2fMB"), dLength/(1024 * 1024));
+//			}
+//			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+//			{
+//				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+//			}
+//			else                               // 1KB -- 1MB之间
+//			{
+//				swprintf_s(szBuf, _T("%.2fKB"), dLength /1024);
+//			}
+//			
+//#else
+//			if (ulLength < 1024)	// 小于1KB
+//			{
+//				sprintf_s(szBuf, ("%lld字节"), ulLength);
+//			}
+//			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
+//			{
+//				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
+//			}
+//			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+//			{
+//				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
+//			}
+//			else                               // 1KB -- 1MB之间
+//			{
+//				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
+//			}
+//#endif
+//		}
+//		break;
+//		}
+//	}
+//	else if (strName == _T("remotefilelist") && iIndex < g_remoteFile.size())
+//	{
+//		switch (iSubItem)
+//		{
+//		case 0:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_remoteFile[iIndex].strFileName);
+//#else
+//			_stprintf(szBuf, g_remoteFile[iIndex].strFileName.c_str());
+//#endif
+//		}
+//		break;
+//		case 1:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_remoteFile[iIndex].strLastDate);
+//#else
+//			_stprintf(szBuf, g_remoteFile[iIndex].strLastDate.c_str());
+//#endif
+//		}
+//		break;
+//		case 2:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_remoteFile[iIndex].strFileType);
+//#else
+//			_stprintf(szBuf, g_remoteFile[iIndex].strFileType.c_str());
+//#endif
+//		}
+//		break;
+//		case 3:
+//		{
+//			if (g_remoteFile[iIndex].strFileType == _T("文件夹"))
+//			{
+//				return _T("");
+//			}
+//			ULONGLONG ulLength = g_remoteFile[iIndex].ulLength;
+//			double dLength = ulLength;
+//#ifdef _UNICODE
+//			if (ulLength < 1024)	// 小于1KB
+//			{
+//				swprintf_s(szBuf, _T("%lld字节"), ulLength);
+//			}
+//			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
+//			{
+//				swprintf_s(szBuf, _T("%.2fMB"), dLength / (1024 * 1024));
+//			}
+//			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+//			{
+//				swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+//			}
+//			else                               // 1KB -- 1MB之间
+//			{
+//				swprintf_s(szBuf, _T("%.2fKB"), dLength / 1024);
+//			}
+//
+//#else
+//			if (ulLength < 1024)	// 小于1KB
+//			{
+//				sprintf_s(szBuf, ("%lld字节"), ulLength);
+//			}
+//			else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
+//			{
+//				sprintf_s(szBuf, ("%.2fMB"), dLength / (1024 * 1024));
+//			}
+//			else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+//			{
+//				sprintf_s(szBuf, ("%.2fGB"), dLength / (1024 * 1024 * 1024));
+//			}
+//			else                               // 1KB -- 1MB之间
+//			{
+//				sprintf_s(szBuf, ("%.2fKB"), dLength / 1024);
+//			}
+//#endif
+//		}
+//		break;
+//		}
+//	}
+//	else if (strName == _T("machineList") && iIndex < g_host.size() )
+//	{
+//		switch (iSubItem)
+//		{
+//		case 0:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, g_host[iIndex]);
+//			/*int iLen = g_host[iIndex].length();
+//			LPWSTR lpText = new WCHAR[iLen + 1];
+//			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
+//			::MultiByteToWideChar(CP_ACP, 0, g_host[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
+//			_stprintf(szBuf, lpText);
+//			delete[] lpText;*/
+//#else
+//			_stprintf(szBuf, g_host[iIndex].c_str());
+//#endif
+//		}
+//		break;
+//		case 1:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, _T("%d"), g_fileport[iIndex]);
+//			/*int iLen = g_fileport[iIndex].length();
+//			LPWSTR lpText = new WCHAR[iLen + 1];
+//			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
+//			::MultiByteToWideChar(CP_ACP, 0, g_fileport[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
+//			_stprintf(szBuf, lpText);
+//			delete[] lpText;*/
+//#else
+//			_stprintf(szBuf, g_fileport[iIndex].c_str());
+//#endif
+//		}
+//		break;
+//		case 2:
+//		{
+//#ifdef _UNICODE		
+//			_stprintf_s(szBuf, _T("%d"), g_msgport[iIndex]);
+//			/*int iLen = g_msgport[iIndex].length();
+//			LPWSTR lpText = new WCHAR[iLen + 1];
+//			::ZeroMemory(lpText, (iLen + 1) * sizeof(WCHAR));
+//			::MultiByteToWideChar(CP_ACP, 0, g_msgport[iIndex].c_str(), -1, (LPWSTR)lpText, iLen);
+//			_stprintf(szBuf, lpText);
+//			delete[] lpText;*/
+//#else
+//			_stprintf(szBuf, g_msgport[iIndex].c_str());
+//#endif
+//		}
+//		break;
+//		}
+//	}
+//
+//	pControl->SetUserData(szBuf);
+//	return pControl->GetUserData();
+//}
 
 /* 以下是消息处理接口 */
-
-// 增加执行机list记录
-LRESULT CUpdateServer::OnAddListItem(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
-{
-	CListTextElementUI* pListElement = (CListTextElementUI*)lParam;
-	switch (wParam)
-	{
-	case RemoteList:
-		if (m_pRemoteList) m_pRemoteList->Add(pListElement);
-		break;
-	case RemoteDirList:
-		if (m_pRemoteDirList) m_pRemoteDirList->Add(pListElement);
-		break;
-	case LocalDirList:
-		if (m_pLocalDirList) m_pLocalDirList->Add(pListElement);
-		break;
-	}
-	return 0;
-}
-
 LRESULT CUpdateServer::OnWMGROUPTALK(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
 	if (wParam != 0)
@@ -1412,15 +1742,38 @@ LRESULT CUpdateServer::OnFileTranferOver(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 			g_remoteFile.push_back(fileinfo);
 			// 更新到list
-			int count = m_pRemoteDirList->GetCount();
-			m_pRemoteDirList->SetTextCallback(this);
 
-			CListTextElementUI* pListElement = new CListTextElementUI;
-			pListElement->SetTag(count);
-			if (pListElement != NULL)
+			CListTextElementUI* pItem = new CListTextElementUI();
+			pItem->SetFixedHeight(30);
+			m_pRemoteDirList->Add(pItem);
+
+			pItem->SetText(0, fileinfo.strFileName);
+			pItem->SetText(1, fileinfo.strFileType);
+			pItem->SetText(2, fileinfo.strLastDate);
+
+			TCHAR szBuf[MAX_PATH] = { 0 };
+			if (fileinfo.strFileType == _T("文件"))
 			{
-				::PostMessageW(GetHWND(), WM_ADDLISTITEM, RemoteDirList, (LPARAM)pListElement);
+				ULONGLONG ulLength = fileinfo.ulLength;
+				double dLength = ulLength;
+				if (ulLength < 1024)	// 小于1KB
+				{
+					swprintf_s(szBuf, _T("%lld字节"), ulLength);
+				}
+				else if (ulLength > 1024 * 1024 && ulLength < (1024 * 1024 * 1000))		// 1MB -- 1000MB
+				{
+					swprintf_s(szBuf, _T("%.2fMB"), dLength / (1024 * 1024));
+				}
+				else if (ulLength >= (1024 * 1024 * 1000))		// >1GB
+				{
+					swprintf_s(szBuf, _T("%.2fGB"), dLength / (1024 * 1024 * 1024));
+				}
+				else                               // 1KB -- 1MB之间
+				{
+					swprintf_s(szBuf, _T("%.2fKB"), dLength / 1024);
+				}
 			}
+			pItem->SetText(3, szBuf);
 		}
 
 		// 释放资源
@@ -1454,4 +1807,17 @@ void CUpdateServer::UpdateLog(const string ip, const CDuiString log)
 				+ PublicFunction::W2M(log.GetData());
 	bool bRet = PublicFunction::SaveLogToFile(strPath, strLog);
 	// 2、显示到界面（to do）
+}
+
+void CUpdateServer::BatStartUpdate()
+{
+	CDuiString strIP = _T("");
+	for (UINT index = 0;index < g_host.size();index++)
+	{
+		strIP = g_host[index];
+
+		// 采取 与客户端循环发消息
+		DWORD dwAddress = inet_addr(PublicFunction::W2M(strIP.GetData()).c_str());
+		g_pTalk->SendText("", 0, MT_BEGIN_UPDATE, dwAddress);
+	}
 }

@@ -75,6 +75,9 @@
     <ClInclude Include="md5global.h">
       <Filter>public\MD5</Filter>
     </ClInclude>
+    <ClInclude Include="ControlEx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -115,6 +118,9 @@
     </ClCompile>
     <ClCompile Include="md5.cpp">
       <Filter>public\MD5</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlEx.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

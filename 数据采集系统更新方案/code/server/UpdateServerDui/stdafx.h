@@ -45,15 +45,15 @@ using namespace DuiLib;
 
 #ifdef _DEBUG
 #	ifdef _UNICODE
-#		pragma comment(lib, "..\\bin\\DuiLib_ud.lib")
-#	else
 #		pragma comment(lib, "..\\bin\\DuiLib_d.lib")
+#	else
+#		pragma comment(lib, "..\\bin\\DuiLibA_d.lib")
 #	endif
 #else
 #	ifdef _UNICODE
-#		pragma comment(lib, "..\\bin\\DuiLib_u.lib")
-#	else
 #		pragma comment(lib, "..\\bin\\DuiLib.lib")
+#	else
+#		pragma comment(lib, "..\\bin\\DuiLibA.lib")
 #	endif
 #endif
 
