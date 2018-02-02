@@ -45,7 +45,8 @@ namespace DuiLib {
 		virtual BOOL CheckColumComboBoxable(int nColum);
 		virtual CComboBoxUI* GetComboBoxUI();
 
-		virtual BOOL CheckColumCheckBoxable(int nColum);
+		virtual BOOL CheckColumCheckBoxable(int nColum, int &iRx);
+		virtual BOOL CheckColumImageable(int nColum, int &rx);
 
 	public:
 		virtual void Notify(TNotifyUI& msg);
@@ -143,6 +144,9 @@ namespace DuiLib {
 		//支持复选框
 		BOOL m_bCheckBoxable;
 
+		//支持 图片 add by zhoupeng
+		BOOL m_bImageable;
+
 	public:
 		BOOL GetColumeEditable();
 		void SetColumeEditable(BOOL bEnable);
@@ -152,6 +156,9 @@ namespace DuiLib {
 
 		BOOL GetColumeCheckable();
 		void SetColumeCheckable(BOOL bEnable);
+
+		BOOL GetColumeImageable();
+		void SetColumeImageable(BOOL bEnable);
 
 	public:
 		void SetCheck(BOOL bCheck);
@@ -197,7 +204,6 @@ namespace DuiLib {
 		int GetCheckBoxHeight() const;      // 实际大小位置使用GetPos获取，这里得到的是预设的参考值
 		void SetCheckBoxHeight(int cy);     // 预设的参考值
 
-
 	public:
 		CContainerUI* m_pOwner;
 		void SetOwner(CContainerUI* pOwner);
@@ -224,6 +230,7 @@ namespace DuiLib {
 
 		LPCTSTR GetText(int iIndex) const;
 		void SetText(int iIndex, LPCTSTR pstrText);
+		void SetControl(int iIndex, CControlUI* pControl);
 
 		void SetOwner(CControlUI* pOwner);
 		CDuiString* GetLinkContent(int iIndex);
@@ -232,6 +239,8 @@ namespace DuiLib {
 		SIZE EstimateSize(SIZE szAvailable);
 
 		void DrawItemText(HDC hDC, const RECT& rcItem);
+
+		void SetImageboxState(UINT uiState);
 
 	protected:
 		enum { MAX_LINK = 8 };
@@ -246,6 +255,8 @@ namespace DuiLib {
 		UINT	m_uCheckBoxState;
 		BOOL	m_bChecked;
 
+		UINT	m_uImageboxState;
+
 		CDuiString m_sCheckBoxNormalImage;
 		CDuiString m_sCheckBoxHotImage;
 		CDuiString m_sCheckBoxPushedImage;
@@ -255,7 +266,10 @@ namespace DuiLib {
 		CDuiString m_sCheckBoxSelectedImage;
 		CDuiString m_sCheckBoxForeImage;
 
+		CDuiString m_sImageboxAImage;
+		CDuiString m_sImageboxBImage;
 		SIZE m_cxyCheckBox;
+		SIZE m_cxyImage;
 
 	public:
 		virtual bool DoPaint(HDC hDC, const RECT& rcPaint, CControlUI* pStopControl);
@@ -273,18 +287,30 @@ namespace DuiLib {
 		LPCTSTR GetCheckBoxDisabledImage();
 		void SetCheckBoxDisabledImage(LPCTSTR pStrImage);
 
+		LPCTSTR GetImageboxAImage();
+		void SetImageboxAImage(LPCTSTR pStrImage);
+
+		LPCTSTR GetImageboxBImage();
+		void SetImageboxBImage(LPCTSTR pStrImage);
+
 		LPCTSTR GetCheckBoxSelectedImage();
 		void SetCheckBoxSelectedImage(LPCTSTR pStrImage);
 		LPCTSTR GetCheckBoxForeImage();
 		void SetCheckBoxForeImage(LPCTSTR pStrImage);
 
 		void GetCheckBoxRect(int nIndex, RECT &rc);	
+		void GetImageboxRect(int nIndex, RECT &rc);
 		void GetColumRect(int nColum, RECT &rc);
 
 		int GetCheckBoxWidth() const;       // 实际大小位置使用GetPos获取，这里得到的是预设的参考值
 		void SetCheckBoxWidth(int cx);      // 预设的参考值
 		int GetCheckBoxHeight() const;      // 实际大小位置使用GetPos获取，这里得到的是预设的参考值
 		void SetCheckBoxHeight(int cy);     // 预设的参考值
+
+		int GetImageboxWidth() const;       // 实际大小位置使用GetPos获取，这里得到的是预设的参考值
+		void SetImageboxWidth(int cx);      // 预设的参考值
+		int GetImageboxHeight() const;      // 实际大小位置使用GetPos获取，这里得到的是预设的参考值
+		void SetImageboxHeight(int cy);     // 预设的参考值
 
 		void SetCheck(BOOL bCheck);
 		BOOL GetCheck() const;

@@ -113,6 +113,8 @@ public:
 	void OnModifyRemote();
 	void OnDeleteRemote();
 
+	void UpdateConfigIni();
+
 	void OnUpdateSystem();
 
 	static DWORD WINAPI RecvUpdateFileThreadProc(LPVOID lpParameter);
@@ -138,6 +140,10 @@ public:
 
 	// 记录日志
 	void UpdateLog(const string ip, const CDuiString log);
+
+	void SetRemoteState(CDuiString strIP, UINT state);
+	// 更新执行机状态
+	void UpdateRemoteState();
 
 	void BatStartUpdate();
 

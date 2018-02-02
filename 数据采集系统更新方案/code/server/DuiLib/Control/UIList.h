@@ -370,7 +370,7 @@ namespace DuiLib {
 	/////////////////////////////////////////////////////////////////////////////////////
 	//
 
-	class UILIB_API CListElementUI : public CControlUI, public IListItemUI
+	class UILIB_API CListElementUI :  public CHorizontalLayoutUI, public IListItemUI
 	{
 	public:
 		CListElementUI();

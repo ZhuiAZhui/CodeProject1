@@ -12,19 +12,25 @@
 #define EXECUTE_RESULT_TYPE_SUCCESS		"1"
 #define EXECUTE_RESULT_TYPE_FAILED		"0"
 
-/*
-* 存放第1列数据
-*/
-std::vector<CDuiString> g_host;
-/*
-* 存放第2列数据
-*/
-std::vector<u_short> g_fileport;
+#define IP_LENGHT		16
+struct RemoteInfo
+{
+	TCHAR ip[IP_LENGHT];
+	u_short fileport;
+	u_short msgport;
+	UINT state;
+};
 
+enum
+{
+	OFFLINE = 0,
+	ONLINE
+};
 /*
-* 存放第3列数据
+* 存放执行机数据
 */
-std::vector<u_short> g_msgport;
+std::vector<RemoteInfo> g_host;
+
 
 // 存放本地目录文件信息
 std::vector<FileInfo> g_localFile;
@@ -341,10 +347,15 @@ void CUpdateServer::Init()
 				MessageBoxA(NULL, szError, ("Error"), MB_OK);
 			}
 		}
+
+		RemoteInfo remoteInfo;
 		CDuiString strWideIP = PublicFunction::M2W(strRemoteIP.c_str());
-		g_host.push_back(strWideIP);
-		g_fileport.push_back(usFPort);
-		g_msgport.push_back(usMultiPort);
+		_stprintf_s(remoteInfo.ip, _T("%s"), strWideIP.GetData());
+		remoteInfo.fileport = usFPort;
+		remoteInfo.msgport = usMultiPort;
+		remoteInfo.state = OFFLINE;
+
+		g_host.push_back(remoteInfo);
 	}
 
 	HWND handle = GetHWND();
@@ -381,32 +392,82 @@ void CUpdateServer::Init()
 
 	for (int index = 0;index < g_host.size(); index++)
 	{
-		//int count = m_pRemoteList->GetCount();
-
 		CListTextExtElementUI* pItem = new CListTextExtElementUI();
+		//pItem->SetManager(&m_pm, NULL, false);
 		pItem->SetFixedHeight(30);
 		m_pRemoteList->Add(pItem);
 
 		pItem->SetAttribute(_T("style"), _T("listex_item_style"));
-		pItem->SetText(1, g_host[index]);
+		pItem->SetText(1, g_host[index].ip);
+
+		TCHAR szBuf[MAX_PATH] = { 0 };
+		_stprintf_s(szBuf, _T("%d"), g_host[index].fileport);
+
+		pItem->SetText(2, szBuf);
+		_stprintf_s(szBuf, _T("%d"), g_host[index].msgport);
+		pItem->SetText(3, szBuf);
+
+		pItem->SetImageboxState(g_host[index].state);
+	
+		/*CListContainerElementUI* pListItem = new CListContainerElementUI();
+		//pListItem->SetChildVAlign(DT_VCENTER);
+		pListItem->SetFixedHeight(30);
+		pListItem->SetManager(&m_pm, NULL, false);
+		m_pRemoteList->Add(pListItem);
+
+		CCheckBoxUI* pCheckBox = new CCheckBoxUI();
+		pCheckBox->SetManager(&m_pm, NULL, false);
+		pCheckBox->SetFixedHeight(16);
+		pCheckBox->SetFixedWidth(16);
+		pCheckBox->SetMaxWidth(16);
+		pCheckBox->SetAttribute(_T("style"), _T("checkbox_style"));
+		pListItem->Add(pCheckBox);
+
+		CLabelUI *pHostLabel = new CLabelUI();
+		pHostLabel->SetManager(&m_pm, NULL, false);
+		pHostLabel->SetFixedHeight(30);
+		pHostLabel->SetAttribute(_T("align"), _T("center"));
+		pHostLabel->SetText(g_host[index]);
+		pListItem->Add(pHostLabel);
+
+		CLabelUI *pFilePortLabel = new CLabelUI();
+		pFilePortLabel->SetManager(&m_pm, NULL, false);
+		pFilePortLabel->SetFixedHeight(30);
+		pFilePortLabel->SetAttribute(_T("align"), _T("center"));
 
 		TCHAR szBuf[MAX_PATH] = { 0 };
 		_stprintf_s(szBuf, _T("%d"), g_fileport[index]);
+		pFilePortLabel->SetText(szBuf);
+		pListItem->Add(pFilePortLabel);
 
-		pItem->SetText(2, szBuf);
+		CLabelUI *pMsgPortLabel = new CLabelUI();
+		pMsgPortLabel->SetManager(&m_pm, NULL, false);
+		pMsgPortLabel->SetFixedHeight(30);
+		pMsgPortLabel->SetAttribute(_T("align"), _T("center"));
+
 		_stprintf_s(szBuf, _T("%d"), g_msgport[index]);
-		pItem->SetText(3, szBuf);
+		pMsgPortLabel->SetText(szBuf);
+		pListItem->Add(pMsgPortLabel);*/
+
+		// add by zhoupeng  动态增加连接状态图标
+		/*CButtonUI *pStateLabel = new CButtonUI();
+		pStateLabel->SetManager(&m_pm, NULL, false);
+		pStateLabel->SetAttribute(_T("style"), _T("online_style"));
+		pStateLabel->SetFixedHeight(20);
+		pStateLabel->SetFixedWidth(20);
+		pItem->Add(pStateLabel);*/
 	}
 }
 
 void CUpdateServer::Notify(TNotifyUI& msg)
 {
+	CDuiString name = msg.pSender->GetName();
 	if (msg.sType == _T("windowinit"))
 	{
 	}
 	else if (msg.sType == _T("click"))
 	{
-		if (msg.pSender->GetName() == _T("closebtn"))
+		if (name.CompareNoCase(_T("closebtn")) == 0)
 		{
 			if(IDYES == MessageBox(m_hWnd, _T("确定退出数据采集系统更新程序？"), _T("提示"), MB_YESNO))
 			{
@@ -414,33 +475,33 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 			}			
 			return;
 		}
-		else if (msg.pSender->GetName() == _T("minbtn"))
+		else if (name.CompareNoCase(_T("minbtn")) == 0 )
 		{
 			SendMessage(WM_SYSCOMMAND, SC_MINIMIZE, 0);
 			return;
 		}
-		else if (msg.pSender->GetName() == _T("maxbtn"))
+		else if (name.CompareNoCase(_T("maxbtn")) == 0 )
 		{
 			SendMessage(WM_SYSCOMMAND, SC_MAXIMIZE, 0); return;
 		}
-		else if (msg.pSender->GetName() == _T("restorebtn"))
+		else if (name.CompareNoCase(_T("restorebtn")) == 0 )
 		{
 			SendMessage(WM_SYSCOMMAND, SC_RESTORE, 0); return;
 		}
-		else if (msg.pSender->GetName() == _T("addbtn"))
+		else if (name.CompareNoCase(_T("addbtn")) == 0 )
 		{
 			OnAddRemote();
 		}
-		else if (msg.pSender->GetName() == _T("modifybtn"))
+		else if (name.CompareNoCase(_T("modifybtn")) == 0 )
 		{
 			OnModifyRemote();
 		}
-		else if (msg.pSender->GetName() == _T("deletebtn"))
+		else if (name.CompareNoCase(_T("deletebtn")) == 0 )
 		{
 			OnDeleteRemote();
 			//msg.pSender->SetTag(NULL);
 		}
-		else if (msg.pSender->GetName() == _T("localdirtn"))
+		else if (name.CompareNoCase(_T("localdirtn")) == 0 )
 		{
 			CDuiString strLocalDir = SelectDir();
 			m_pLocalDir->SetText(strLocalDir);
@@ -449,28 +510,32 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 				InitLocalDirToList(strLocalDir);
 			}
 		}
-		else if (msg.pSender->GetName() == _T("updatebtn"))
+		else if (name.CompareNoCase(_T("updatebtn")) == 0 )
 		{
 			// 点击 自动更新按钮
 			OnUpdateSystem();
 		}
-		else if (msg.pSender->GetName() == _T("comparebtn"))
+		else if (name.CompareNoCase(_T("comparebtn")) == 0 )
 		{
 			// 开启批量更新任务
 			BatStartUpdate();
 			//g_pTalk->SendMessageTest();
 		}
+		else if (name.CompareNoCase(_T("refreshbtn")) == 0 )
+		{
+			UpdateRemoteState();
+		}
 	}
 	else if (msg.sType == _T("return"))
 	{
-		if (msg.pSender->GetName() == _T("remotedir"))
+		if (name.CompareNoCase(_T("remotedir")) == 0 )
 		{
 			// to do
 			MessageBox(NULL, _T("click enter"), _T("remotedir"), 0);
 			return;
 		}
 		// 将本地站点的文件夹信息显示出来
-		else if (msg.pSender->GetName() == _T("localdir"))
+		else if (name.CompareNoCase(_T("localdir")) == 0)
 		{
 			CDuiString strLocalDir = m_pLocalDir->GetText();
 			string strPath = PublicFunction::W2M(strLocalDir.GetData());
@@ -500,10 +565,10 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 			if (iSel < 0) return;
 			//int iIndex = msg.pSender->GetTag();    // 此行代码，在删除行场景下有bug：
 													 // 删除首行后再进行点击首行，tag=1，不为0
-			m_pHostEdit->SetText(g_host[iSel]);
-			strTmp.Format(_T("%d"), g_fileport[iSel]);
+			m_pHostEdit->SetText(g_host[iSel].ip);
+			strTmp.Format(_T("%d"), g_host[iSel].fileport);
 			m_pFileportEdit->SetText(strTmp);
-			strTmp.Format(_T("%d"), g_msgport[iSel]);
+			strTmp.Format(_T("%d"), g_host[iSel].msgport);
 			m_pMsgportEdit->SetText(strTmp);
 		}
 	}
@@ -518,6 +583,15 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 			int iSel = m_pRemoteList->GetCurSel();
 			InitRemoteDirToList(iSel);
 		}
+	}
+	else if (msg.sType == _T("selectchanged"))
+	{
+		CTabLayoutUI* pTabSwitch = static_cast<CTabLayoutUI*>(m_pm.FindControl(_T("tab_switch")));
+		if (name.CompareNoCase(_T("basic_tab")) == 0) pTabSwitch->SelectItem(0);
+		if (name.CompareNoCase(_T("rich_tab")) == 0) pTabSwitch->SelectItem(1);
+		if (name.CompareNoCase(_T("ex_tab")) == 0) pTabSwitch->SelectItem(2);
+		if (name.CompareNoCase(_T("ani_tab")) == 0) pTabSwitch->SelectItem(3);
+		if (name.CompareNoCase(_T("split_tab")) == 0) pTabSwitch->SelectItem(4);
 	}
 	/*else if (msg.sType == _T("menu"))
 	{*/
@@ -762,21 +836,48 @@ void CUpdateServer::OnAddRemote()
 
 	for (size_t index = 0; index < g_host.size();index++)
 	{
-		if (strhost == g_host[index])
+		if (strhost == g_host[index].ip)
 		{
 			MessageBox(NULL, _T("不能重复添加执行机IP"), _T("Error"), MB_OK);
 			return;
 		}
 	}
 
+	// 写入全局变量
+	RemoteInfo remoteInfo;
+	_stprintf_s(remoteInfo.ip, _T("%s"), strhost.GetData());
+	remoteInfo.fileport = _ttoi(strfileport);
+	remoteInfo.msgport = _ttoi(strmsgport);
+	remoteInfo.state = OFFLINE;
+
+	g_host.push_back(remoteInfo);
+
+	// 写入配置文件
+	UpdateConfigIni();
+
+	// 清空当前输入
+	m_pHostEdit->SetText(_T(""));
+	m_pFileportEdit->SetText(_T(""));
+	m_pMsgportEdit->SetText(_T(""));
+
+	// 显示到界面
+	CListTextExtElementUI* pItem = new CListTextExtElementUI();
+	pItem->SetFixedHeight(30);
+	m_pRemoteList->Add(pItem);
+
+	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+	pItem->SetText(1, strhost);
+	pItem->SetText(2, strfileport);
+	pItem->SetText(3, strmsgport);
+
 	// 创建对应执行机的文件夹：以IP命名，存在其更新的过程文件
 	CDuiString strRemoteFolderPath = _T("");
 	//strRemoteFolderPath.Format(_T("%s\\%s"),PublicFunction::M2W(m_curPath.c_str()), strhost);
-	strRemoteFolderPath = CDuiString(PublicFunction::M2W(m_curPath.c_str()))+ _T("\\")+ strhost;
+	strRemoteFolderPath = CDuiString(PublicFunction::M2W(m_curPath.c_str())) + _T("\\") + strhost;
 	string strPath = PublicFunction::W2M(strRemoteFolderPath.GetData());
 	if (false == PublicFunction::IsDirExisted(strPath))
 	{
-		if ( NULL == CreateDirectory(strRemoteFolderPath, NULL))
+		if (NULL == CreateDirectory(strRemoteFolderPath, NULL))
 		{
 			CDuiString error = _T("");
 			error.Format(_T("创建文件%s失败，错误码：%d\r\n"), strRemoteFolderPath, GetLastError());
@@ -784,37 +885,6 @@ void CUpdateServer::OnAddRemote()
 			return;
 		}
 	}
-
-
-	// 写入配置文件
-	string configPath = m_curPath + CONFIG_NAME;
-	int iCount = GetPrivateProfileIntA(("RemoteList"), ("count"), 0, configPath.c_str());
-	char szSection[10] = { 0 };
-	char szCount[4] = { 0 };	// IP最大个数256
-	sprintf_s(szSection, "Remote%d", iCount+1);
-	sprintf_s(szCount, "%d", iCount + 1);
-	WritePrivateProfileStringA("RemoteList", "count", szCount, configPath.c_str());
-	WritePrivateProfileStringA(szSection, "IP", PublicFunction::W2M(strhost.GetData()).c_str(), configPath.c_str());
-	WritePrivateProfileStringA(szSection, "fileport", PublicFunction::W2M(strfileport.GetData()).c_str(), configPath.c_str());
-	
-	// 写入全局变量
-	g_host.push_back(strhost);
-	g_fileport.push_back(_ttoi(strfileport));
-	g_msgport.push_back(_ttoi(strmsgport));
-
-	// 清空当前输入
-	m_pHostEdit->SetText(_T(""));
-	m_pFileportEdit->SetText(_T(""));
-	m_pMsgportEdit->SetText(_T(""));
-
-	CListTextElementUI* pItem = new CListTextElementUI();
-	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
-	pItem->SetFixedHeight(30);
-	m_pRemoteList->Add(pItem);
-
-	pItem->SetText(1, strhost);
-	pItem->SetText(2, strfileport);
-	pItem->SetText(3, strmsgport);
 }
 
 void CUpdateServer::OnModifyRemote()
@@ -838,10 +908,10 @@ void CUpdateServer::OnModifyRemote()
 	int index = 0;
 	for (size_t index = 0; index < g_host.size();index++)
 	{
-		if (strhost == g_host[index])
+		if (strhost == g_host[index].ip)
 		{
-			g_fileport[index] = _ttoi(strfileport);
-			g_msgport[index] = _ttoi(strmsgport);
+			g_host[index].fileport = _ttoi(strfileport);
+			g_host[index].msgport = _ttoi(strmsgport);
 			bIsExisted = true;
 			m_pRemoteList->RemoveAt(index);
 			break;
@@ -852,14 +922,17 @@ void CUpdateServer::OnModifyRemote()
 		MessageBox(NULL, _T("不能修改尚未添加执行机IP"), _T("Error"), MB_OK);
 		return;
 	}	
+	
+	UpdateConfigIni();
+
 	m_pHostEdit->SetText(_T(""));
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
-	CListTextElementUI* pItem = new CListTextElementUI();
+	CListTextExtElementUI* pItem = new CListTextExtElementUI();
 	pItem->SetFixedHeight(30);
-	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
 	m_pRemoteList->Add(pItem);
+	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
 
 	pItem->SetText(1, strhost);
 	pItem->SetText(2, strfileport);
@@ -888,17 +961,11 @@ void CUpdateServer::OnDeleteRemote()
 	//for( std::vector<CDuiString>::iterator iter = g_)
 	for (size_t index = 0; index < g_host.size();index++)
 	{
-		if (strhost == g_host[index])
+		if (strhost == g_host[index].ip)
 		{
 			bIsExisted = true;
-
-			//m_pRemoteList->SetDelayedDestroy(false);
 			m_pRemoteList->RemoveAt(index);
-			//m_pRemoteList->SetTag(index);
-			//m_pRemoteList->NeedUpdate();
 			g_host.erase(g_host.begin() + index);
-			g_fileport.erase(g_fileport.begin() + index);
-			g_msgport.erase(g_msgport.begin() + index);
 			break;
 		}
 	}
@@ -906,6 +973,30 @@ void CUpdateServer::OnDeleteRemote()
 	{
 		MessageBox(NULL, _T("不能删除尚未添加执行机IP"), _T("Error"), MB_OK);
 		return;
+	}
+	UpdateConfigIni();
+}
+
+void CUpdateServer::UpdateConfigIni()
+{
+	// 写入配置文件
+	string configPath = m_curPath + CONFIG_NAME;
+
+	TCHAR szPath[MAX_PATH] = { 0 };
+	TCHAR szCount[4] = { 0 };	// IP最大个数256
+	TCHAR szSection[10] = { 0 };
+	TCHAR szFileport[10] = { 0 };
+	int count = g_host.size();
+
+	_stprintf_s(szPath, _T("%s"), PublicFunction::M2W(configPath.c_str()));
+	_stprintf_s(szCount, _T("%d"), count );
+	WritePrivateProfileString(_T("RemoteList"), _T("count"), szCount, szPath);
+	for (int index = 0;index < count;index++ )
+	{
+		_stprintf_s(szSection, _T("Remote%d"), index + 1);
+		_stprintf_s(szFileport, _T("%d"), g_host[index].fileport);
+		WritePrivateProfileString(szSection, _T("IP"), g_host[index].ip, szPath);
+		WritePrivateProfileString(szSection, _T("fileport"), szFileport, szPath);
 	}
 }
 
@@ -1276,9 +1367,9 @@ void CUpdateServer::InitLocalDirToList(CDuiString dir)
 
 void CUpdateServer::InitRemoteDirToList(int index)
 {
-	CDuiString host = g_host[index];
-	u_short usFilePort = g_fileport[index];
-	u_short usMsgPort = g_msgport[index];
+	CDuiString host = g_host[index].ip;
+	u_short usFilePort = g_host[index].fileport;
+	u_short usMsgPort = g_host[index].msgport;
 	string strRemoteIP = PublicFunction::W2M(host.GetData());
 
 	m_pRemoteDirIP->SetText(host);
@@ -1560,12 +1651,16 @@ void CUpdateServer::HandleGroupMsg(HWND hDlg, GT_HDR *pHeader)//函数实现体
 		{
 			// 显示给用户
 			strLog = strLogHead + _T("join.\r\n");
+			SetRemoteState(strIPW, ONLINE);
+			UpdateRemoteState();
 			break;
 		}
 		case MT_LEAVE:		// 用户离开
 		{
 			// 显示给用户
 			strLog = strLogHead + _T("leave.\r\n");
+			SetRemoteState(strIPW, OFFLINE);
+			UpdateRemoteState();
 			break;
 		}
 		case MT_MESG:		// 用户发送过来消息
@@ -1748,8 +1843,8 @@ LRESULT CUpdateServer::OnFileTranferOver(UINT uMsg, WPARAM wParam, LPARAM lParam
 			m_pRemoteDirList->Add(pItem);
 
 			pItem->SetText(0, fileinfo.strFileName);
-			pItem->SetText(1, fileinfo.strFileType);
-			pItem->SetText(2, fileinfo.strLastDate);
+			pItem->SetText(1, fileinfo.strLastDate);
+			pItem->SetText(2, fileinfo.strFileType);
 
 			TCHAR szBuf[MAX_PATH] = { 0 };
 			if (fileinfo.strFileType == _T("文件"))
@@ -1809,12 +1904,38 @@ void CUpdateServer::UpdateLog(const string ip, const CDuiString log)
 	// 2、显示到界面（to do）
 }
 
+void CUpdateServer::SetRemoteState(CDuiString strIP, UINT state)
+{
+	for (int index = 0;index < g_host.size(); index++)
+	{
+		if (_tcscmp(strIP.GetData(), g_host[index].ip) == 0)
+		{
+			g_host[index].state = state;
+			break;
+		}
+	}
+}
+
+void CUpdateServer::UpdateRemoteState()
+{
+	for (int index = 0; index < m_pRemoteList->GetCount(); index++)
+	{
+		CControlUI *p = m_pRemoteList->GetItemAt(index);
+		CListTextExtElementUI *pListItem = static_cast<CListTextExtElementUI *>(p->GetInterface(_T("ListTextExElement")));
+		if (pListItem != NULL)
+		{
+			pListItem->SetImageboxState(g_host[index].state);
+		}
+	}
+	
+}
+
 void CUpdateServer::BatStartUpdate()
 {
 	CDuiString strIP = _T("");
 	for (UINT index = 0;index < g_host.size();index++)
 	{
-		strIP = g_host[index];
+		strIP = g_host[index].ip;
 
 		// 采取 与客户端循环发消息
 		DWORD dwAddress = inet_addr(PublicFunction::W2M(strIP.GetData()).c_str());
