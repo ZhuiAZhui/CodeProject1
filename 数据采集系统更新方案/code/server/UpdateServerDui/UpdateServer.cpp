@@ -374,7 +374,9 @@ void CUpdateServer::Init()
 	m_pRemoteList = static_cast<CListExUI*>(m_pm.FindControl(_T("machineList")));
 	m_pRemoteList->InitListCtrl();
 	//m_pRemoteList = static_cast<CListUI*>(m_pm.FindControl(_T("machineList")));
-	m_pHostEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("host")));
+	m_pHostIP = static_cast<CIPAddressUI*>(m_pm.FindControl(_T("host")));
+	m_pHostIP->SetIP(0);
+
 	m_pFileportEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("fileport")));
 	m_pMsgportEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("msgport")));
 
@@ -565,7 +567,9 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 			if (iSel < 0) return;
 			//int iIndex = msg.pSender->GetTag();    // 此行代码，在删除行场景下有bug：
 													 // 删除首行后再进行点击首行，tag=1，不为0
-			m_pHostEdit->SetText(g_host[iSel].ip);
+			//m_pHostIP->SetText(g_host[iSel].ip);
+			string strRemoteIP = PublicFunction::W2M(g_host[iSel].ip);
+			m_pHostIP->SetIP(PublicFunction::ReserveIP(strRemoteIP));
 			strTmp.Format(_T("%d"), g_host[iSel].fileport);
 			m_pFileportEdit->SetText(strTmp);
 			strTmp.Format(_T("%d"), g_host[iSel].msgport);
@@ -819,12 +823,12 @@ LRESULT CUpdateServer::OnGetMinMaxInfo(UINT uMsg, WPARAM wParam, LPARAM lParam, 
 
 void CUpdateServer::OnAddRemote()
 {
-	if (!m_pRemoteList || !m_pHostEdit || !m_pFileportEdit || !m_pMsgportEdit)
+	if (!m_pRemoteList || !m_pHostIP || !m_pFileportEdit || !m_pMsgportEdit)
 	{
 		return;
 	}
 
-	CDuiString strhost = m_pHostEdit->GetText();
+	CDuiString strhost = m_pHostIP->GetText();
 	CDuiString strfileport = m_pFileportEdit->GetText();
 	CDuiString strmsgport = m_pMsgportEdit->GetText();
 
@@ -856,7 +860,7 @@ void CUpdateServer::OnAddRemote()
 	UpdateConfigIni();
 
 	// 清空当前输入
-	m_pHostEdit->SetText(_T(""));
+	m_pHostIP->SetText(_T(""));
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
@@ -889,12 +893,12 @@ void CUpdateServer::OnAddRemote()
 
 void CUpdateServer::OnModifyRemote()
 {
-	if (!m_pRemoteList || !m_pHostEdit || !m_pFileportEdit || !m_pMsgportEdit)
+	if (!m_pRemoteList || !m_pHostIP || !m_pFileportEdit || !m_pMsgportEdit)
 	{
 		return;
 	}
 
-	CDuiString strhost = m_pHostEdit->GetText();
+	CDuiString strhost = m_pHostIP->GetText();
 	CDuiString strfileport = m_pFileportEdit->GetText();
 	CDuiString strmsgport = m_pMsgportEdit->GetText();
 
@@ -925,7 +929,7 @@ void CUpdateServer::OnModifyRemote()
 	
 	UpdateConfigIni();
 
-	m_pHostEdit->SetText(_T(""));
+	m_pHostIP->SetText(_T(""));
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
@@ -941,12 +945,12 @@ void CUpdateServer::OnModifyRemote()
 
 void CUpdateServer::OnDeleteRemote()
 {
-	if (!m_pRemoteList || !m_pHostEdit || !m_pFileportEdit || !m_pMsgportEdit)
+	if (!m_pRemoteList || !m_pHostIP || !m_pFileportEdit || !m_pMsgportEdit)
 	{
 		return;
 	}
 
-	CDuiString strhost = m_pHostEdit->GetText();
+	CDuiString strhost = m_pHostIP->GetText();
 	CDuiString strfileport = m_pFileportEdit->GetText();
 	CDuiString strmsgport = m_pMsgportEdit->GetText();
 
@@ -988,7 +992,7 @@ void CUpdateServer::UpdateConfigIni()
 	TCHAR szFileport[10] = { 0 };
 	int count = g_host.size();
 
-	_stprintf_s(szPath, _T("%s"), PublicFunction::M2W(configPath.c_str()));
+	_stprintf_s(szPath, _T("%s"), PublicFunction::M2W(configPath.c_str()).GetData());
 	_stprintf_s(szCount, _T("%d"), count );
 	WritePrivateProfileString(_T("RemoteList"), _T("count"), szCount, szPath);
 	for (int index = 0;index < count;index++ )

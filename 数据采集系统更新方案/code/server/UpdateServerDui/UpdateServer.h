@@ -93,7 +93,7 @@ private:// UI变量
 
 
 	CListExUI* m_pRemoteList;			//remote list控件
-	CEditUI* m_pHostEdit;			//host IP控件
+	CIPAddressUI* m_pHostIP;			//host IP控件
 	CEditUI* m_pFileportEdit;		//文件传输端口控件
 	CEditUI* m_pMsgportEdit;		//消息传输端口控件
 
@@ -102,6 +102,7 @@ private:// UI变量
 
 	CEditUI* m_pLocalDir;			// 本地站点关联目录
 	CListUI* m_pLocalDirList;		// 本地站点目录list
+
 
 public:
 	CMainPage m_MainPage;

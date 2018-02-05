@@ -436,3 +436,13 @@ bool PublicFunction::CompareXMLs(const std::string xmlfirst, const std::string x
 
 	return false;
 }
+
+DWORD PublicFunction::ReserveIP(const std::string ip)
+{
+	in_addr addr;
+	addr.S_un.S_addr = inet_addr(ip.c_str());
+	//memcpy(&addr, inet_addr(ip.c_str()), sizeof(in_addr));
+	DWORD dwIP = MAKEIPADDRESS(addr.S_un.S_un_b.s_b1, addr.S_un.S_un_b.s_b2,
+		addr.S_un.S_un_b.s_b3, addr.S_un.S_un_b.s_b4);
+	return dwIP;
+}

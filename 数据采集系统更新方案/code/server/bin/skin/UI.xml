@@ -14,7 +14,7 @@
     		<Control height="2" bkcolor="#FFD1EDFF" />
 			<HorizontalLayout height="20" bkcolor="#FF8DD3FF" bkcolor2="#FF60B1FE">
     			<VerticalLayout height="20">
-    				<Text text="{a}{f 1}数采站自动更新FTP客户端{/f}{/a}" showhtml="true" />
+    				<Text text="{a}{f 1}数采站自动更新服务端{/f}{/a}" showhtml="true" />
 				</VerticalLayout>
 				<HorizontalLayout maxwidth="94" width="94" >
     				<Button name="minbtn" maxwidth="26" maxheight="18" normalimage="file='frame_btn_min.bmp' source='0,0,26,18' mask='#FFFF00FF'" hotimage="file='frame_btn_min.bmp' source='26,0,52,18' mask='#FFFF00FF'" pushedimage="file='frame_btn_min.bmp' source='52,0,78,18' mask='#FFFF00FF'"/>
@@ -63,7 +63,7 @@
 						<VerticalLayout childpadding="5" >
 							<HorizontalLayout height="30" childpadding="10" padding="5,5,0,0" >
 								<Label text="远程站点：" align="center" maxwidth="60" width="60" padding="5,5,0,0" />
-								<Edit name="remotedir" height="30"  tooltip="输入远程站点"/>
+								<Edit name="remotedir" height="30" bordersize="1" bordercolor="#FF633333" tooltip="输入远程站点"/>
 							</HorizontalLayout>	
 							<HorizontalLayout >
 								<List name="remotefilelist" vscrollbar="true" hscrollbar="true" padding="5,0,0,0" style="list_style">
@@ -84,15 +84,15 @@
 							<HorizontalLayout height="30" childpadding="10" padding="5,5,0,0" >
 								<Label text="主机：" align="center" width="85" padding="5,0,0,0" />
 								<!--Edit name="host" width="180" tooltip="输入执行机地址" /-->
-								<IPAddress name="host" width="180" bordersize="1" bordercolor="#FF888888" textpadding="5" tipvalue="IP地址" tooltip="输入执行机地址" text="0.0.0.0"/>
+								<IPAddress name="host" width="180" bordersize="1" bordercolor="#FF633333" textpadding="5" tipvalue="IP地址" tooltip="输入执行机地址" text="0.0.0.0"/>
 							</HorizontalLayout>
 							<HorizontalLayout height="30" childpadding="10" padding="5,5,0,0">
 								<Label text="文件传输端口：" align="center" width="85"  padding="5,0,0,0"  />
-								<Edit name="fileport" width="180" tooltip="输入文件传输端口" tipvalue="数字" numberonly="true"/>
+								<Edit name="fileport" width="180" tooltip="输入文件传输端口" bordersize="1" bordercolor="#FF633333" tipvalue="数字" numberonly="true"/>
 							</HorizontalLayout>
 							<HorizontalLayout height="30" childpadding="10" padding="5,5,0,0">						
 								<Label text="消息传输端口：" align="center" width="85"  padding="5,0,0,0" />
-								<Edit name="msgport" width="180"  tooltip="输入消息传输端口" tipvalue="数字" numberonly="true"/>
+								<Edit name="msgport" width="180"  tooltip="输入消息传输端口" bordersize="1" bordercolor="#FF633333" tipvalue="数字" numberonly="true"/>
 							</HorizontalLayout>
 							<HorizontalLayout height="30" childpadding="20" padding="10,5,0,0">
 								<Button name="addbtn" text="添加" width="64"  padding="5,0,0,0"  normalimage="file='tab_normal.bmp' corner='2,2,2,2'" selectedimage="file='tab_select.bmp' corner='2,2,2,2'" hotimage="file='tab_hot.bmp' corner='2,2,2,2'" />
@@ -104,7 +104,7 @@
 						<VerticalLayout childpadding="5">
 							<HorizontalLayout height="30" childpadding="10" padding="5,5,0,0" >
 								<Label text="本地站点：" align="center" width="60" padding="5,5,0,0" />
-								<Edit name="localdir" tooltip="输入本地站点"/>
+								<Edit name="localdir" bordersize="1" bordercolor="#FF633333" tooltip="输入本地站点"/>
 								<Button name="localdirtn" text="..." width="50" normalimage="file='tab_normal.bmp' corner='2,2,2,2'" selectedimage="file='tab_select.bmp' corner='2,2,2,2'" hotimage="file='tab_hot.bmp' corner='2,2,2,2'" />
 							</HorizontalLayout>	
 							<HorizontalLayout >
