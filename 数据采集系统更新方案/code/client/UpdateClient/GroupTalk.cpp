@@ -178,10 +178,10 @@ DWORD WINAPI _GroupTalkEntry(LPVOID lpParam)
 
 			// add by zhoupeng 2018-1-3
 			// 仅处理来源不一样的消息：即客户端处理服务端消息，服务端处理客户端消息
-			/*if (pHeader->gt_fromtype == pTalk->m_usMsgFrom)
+			if (pHeader->gt_fromtype == pTalk->m_usMsgFrom)
 			{
 				continue;
-			}*/
+			}
 			// 填写源地址信息
 			pHeader->dwAddr = saFrom.sin_addr.S_un.S_addr;
 			pTalk->DispatchMsg(pHeader, dwRecv);
