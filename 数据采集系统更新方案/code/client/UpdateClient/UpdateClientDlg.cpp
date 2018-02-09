@@ -334,7 +334,7 @@ LRESULT CUpdateClientDlg::WMGROUPTALK(WPARAM wParam, LPARAM lParam)//CGroupTalk·
 {
 	if (wParam != 0)
 	{
-		::MessageBox(m_hWnd, (LPCTSTR)lParam, _T("³ö´í£¡"), 0);
+		::MessageBoxA(m_hWnd, (LPCSTR)lParam, ("³ö´í"), 0);
 	}
 	else
 	{
@@ -568,9 +568,7 @@ void CUpdateClientDlg::HandleGroupMsg(HWND hDlg, GT_HDR *pHeader)//º¯ÊýÊµÏÖÌå
 
 void CUpdateClientDlg::UpdateLog(CString strLog)
 {
-	SYSTEMTIME *tm = NULL;
-	TCHAR szTime[MAX_PATH] = { 0 };
-	TCHAR szDate[MAX_PATH] = { 0 };
+	SYSTEMTIME tm;
 	CString strCurTime = _T("");
 
 	if (strLog.IsEmpty())
@@ -578,11 +576,9 @@ void CUpdateClientDlg::UpdateLog(CString strLog)
 		return;
 	}
 
-	GetTimeFormatEx(LOCALE_NAME_SYSTEM_DEFAULT, TIME_FORCE24HOURFORMAT, tm,
-		_T("hh:mm:ss"), szTime, MAX_PATH);
-	GetDateFormatEx(LOCALE_NAME_SYSTEM_DEFAULT, DATE_AUTOLAYOUT, tm, _T("yyyy-MM-dd"),
-		szDate, MAX_PATH, NULL);
-	strCurTime.Format(_T("%s %s "), szDate, szTime);
+	GetLocalTime(&tm);
+	strCurTime.Format(_T("%04d-%02d-%02d %02d:%02d:%02d "), tm.wYear, tm.wMonth, tm.wDay,
+		tm.wHour, tm.wMinute, tm.wSecond);
 
 	m_RichEditLog.SetSel(-1, -1);
 	m_RichEditLog.ReplaceSel(strCurTime + strLog);
