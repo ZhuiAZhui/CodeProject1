@@ -364,10 +364,12 @@ void CUpdateServer::Init()
 	if (strMultiAddr == "" || usMultiPort == 0)
 	{
 		g_pTalk = new CGroupTalk(GetHWND(), ::inet_addr(GROUP_ADDRESS), GROUP_PORT, MSG_FROM_SERVER);
+		//g_pTalk = new CGroupTalk(GetHWND(), ADDR_ANY, GROUP_PORT, MSG_FROM_SERVER);
 	}
 	else
 	{
 		g_pTalk = new CGroupTalk(GetHWND(), ::inet_addr(strMultiAddr.c_str()), usMultiPort, MSG_FROM_SERVER);
+		//g_pTalk = new CGroupTalk(GetHWND(), ADDR_ANY, usMultiPort, MSG_FROM_SERVER);
 	}
 
 	// 拓展List -- remote list
@@ -386,10 +388,11 @@ void CUpdateServer::Init()
 	m_pLocalDirList = static_cast<CListUI*>(m_pm.FindControl(_T("localfilelist")));
 	m_pLocalDir = static_cast<CEditUI*>(m_pm.FindControl(_T("localdir")));
 
+	m_pLogEdit = static_cast<CRichEditUI*>(m_pm.FindControl(_T("logedit")));
+
 	CVerticalLayoutUI*  pui = static_cast<CVerticalLayoutUI*>(m_pm.FindControl(_T("layer1-top")));
 	if (pui) {
 		pui->SetVisible(true);
-
 	}
 
 	for (int index = 0;index < g_host.size(); index++)
@@ -517,7 +520,7 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 			// 点击 自动更新按钮
 			OnUpdateSystem();
 		}
-		else if (name.CompareNoCase(_T("comparebtn")) == 0 )
+		else if (name.CompareNoCase(_T("batupdatebtn")) == 0 )
 		{
 			// 开启批量更新任务
 			BatStartUpdate();
@@ -525,7 +528,9 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 		}
 		else if (name.CompareNoCase(_T("refreshbtn")) == 0 )
 		{
-			UpdateRemoteState();
+			// 先广播hello消息，然后刷新界面
+			g_pTalk->SendText("", 0, MT_JION);
+			//UpdateRemoteState();
 		}
 	}
 	else if (msg.sType == _T("return"))
@@ -558,22 +563,13 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 	else if (msg.sType == _T("itemclick"))
 	{
 		CListTextElementUI* pListElement = (CListTextElementUI*)msg.pSender;
-		CDuiString strTmp = _T("");
 
 		// 点击执行机表数据，显示到edit框中
 		if (pListElement && pListElement->GetOwner() == m_pRemoteList)
 		{			
 			int iSel = m_pRemoteList->GetCurSel();	// 此行代码，有bug。点击事件需要点击两次，界面才有响应正确的行
 			if (iSel < 0) return;
-			//int iIndex = msg.pSender->GetTag();    // 此行代码，在删除行场景下有bug：
-													 // 删除首行后再进行点击首行，tag=1，不为0
-			//m_pHostIP->SetText(g_host[iSel].ip);
-			string strRemoteIP = PublicFunction::W2M(g_host[iSel].ip);
-			m_pHostIP->SetIP(PublicFunction::ReserveIP(strRemoteIP));
-			strTmp.Format(_T("%d"), g_host[iSel].fileport);
-			m_pFileportEdit->SetText(strTmp);
-			strTmp.Format(_T("%d"), g_host[iSel].msgport);
-			m_pMsgportEdit->SetText(strTmp);
+			OnClickItem(iSel);			
 		}
 	}
 	else if (msg.sType == _T("itemactivate"))
@@ -979,6 +975,62 @@ void CUpdateServer::OnDeleteRemote()
 		return;
 	}
 	UpdateConfigIni();
+}
+
+void CUpdateServer::OnClickItem(int iSel)
+{
+	if (iSel < 0 || g_host.size() < iSel || m_pMsgportEdit == NULL)
+	{
+		return;
+	}
+	CDuiString strTmp = _T("");
+	string strRemoteIP = PublicFunction::W2M(g_host[iSel].ip);
+
+	// 显示当期选中执行机信息
+	m_pHostIP->SetIP(PublicFunction::ReserveIP(strRemoteIP));
+	strTmp.Format(_T("%d"), g_host[iSel].fileport);
+	m_pFileportEdit->SetText(strTmp);
+	strTmp.Format(_T("%d"), g_host[iSel].msgport);
+	m_pMsgportEdit->SetText(strTmp);
+
+	// 显示当前选中执行机更新日志
+	if (!m_pLogEdit)
+	{
+		return;
+	}
+	m_pLogEdit->SetText(_T(""));
+
+	string strLog = "";
+	std::string strPath = m_curPath + "\\" + strRemoteIP + UPDATELOG;
+	char szBuffer[1024] = { 0 };
+
+	FILE *pFile = NULL;
+	errno_t err = fopen_s(&pFile, strPath.c_str(), "rb");
+	if (err != 0 || pFile == NULL)
+	{
+		return;
+	}
+
+	while (!feof(pFile))
+	{
+		err = fread_s(szBuffer, 1024 * sizeof(char), sizeof(char), 1024, pFile);
+		if (err == 0)
+		{
+			fclose(pFile);
+			pFile = NULL;
+			break;
+		}
+		strLog += szBuffer;
+	}
+	
+	fclose(pFile);
+
+	m_pLogEdit->SetText(PublicFunction::M2W(strLog.c_str()));
+	SIZE siz;
+	siz.cx = 0;
+	siz.cy = 0;
+	siz = m_pLogEdit->GetScrollRange();
+	m_pLogEdit->SetScrollPos(siz);
 }
 
 void CUpdateServer::UpdateConfigIni()
@@ -1623,7 +1675,7 @@ LRESULT CUpdateServer::OnWMGROUPTALK(UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 {
 	if (wParam != 0)
 	{
-		::MessageBox(m_hWnd, (LPCTSTR)lParam, _T("出错！"), 0);
+		::MessageBoxA(m_hWnd, (LPCSTR)lParam, ("出错"), 0);
 	}
 	else
 	{
@@ -1884,9 +1936,7 @@ LRESULT CUpdateServer::OnFileTranferOver(UINT uMsg, WPARAM wParam, LPARAM lParam
 
 void CUpdateServer::UpdateLog(const string ip, const CDuiString log)
 {
-	SYSTEMTIME *tm = NULL;
-	TCHAR szTime[MAX_PATH] = { 0 };
-	TCHAR szDate[MAX_PATH] = { 0 };
+	SYSTEMTIME tm ;
 	CDuiString strCurTime = _T("");
 
 	if (log.GetLength() == 0)
@@ -1894,11 +1944,9 @@ void CUpdateServer::UpdateLog(const string ip, const CDuiString log)
 		return;
 	}
 
-	GetTimeFormatEx(LOCALE_NAME_SYSTEM_DEFAULT, TIME_FORCE24HOURFORMAT, tm,
-		_T("hh:mm:ss"), szTime, MAX_PATH);
-	GetDateFormatEx(LOCALE_NAME_SYSTEM_DEFAULT, DATE_AUTOLAYOUT, tm, L"yyyy-MM-dd",
-		szDate, MAX_PATH, NULL);
-	strCurTime.Format(_T("%s %s "), szDate, szTime);
+	GetLocalTime(&tm);
+	strCurTime.Format(_T("%04d-%02d-%02d %02d:%02d:%02d "), tm.wYear, tm.wMonth, tm.wDay, 
+		tm.wHour, tm.wMinute, tm.wSecond);
 
 	// 1、保存至文件
 	std::string strPath = m_curPath + "\\" + ip + UPDATELOG;
@@ -1937,12 +1985,17 @@ void CUpdateServer::UpdateRemoteState()
 void CUpdateServer::BatStartUpdate()
 {
 	CDuiString strIP = _T("");
-	for (UINT index = 0;index < g_host.size();index++)
+	for (int index = 0;index < m_pRemoteList->GetCount(); index++)
 	{
-		strIP = g_host[index].ip;
+		CControlUI *p = m_pRemoteList->GetItemAt(index);
+		CListTextExtElementUI *pListItem = static_cast<CListTextExtElementUI*>(p->GetInterface(_T("ListTextExElement")));
+		if (pListItem != NULL && pListItem->GetCheck())
+		{
+			strIP = pListItem->GetText(1);//g_host[index].ip;
 
-		// 采取 与客户端循环发消息
-		DWORD dwAddress = inet_addr(PublicFunction::W2M(strIP.GetData()).c_str());
-		g_pTalk->SendText("", 0, MT_BEGIN_UPDATE, dwAddress);
+			// 采取 与客户端循环发消息
+			DWORD dwAddress = inet_addr(PublicFunction::W2M(strIP.GetData()).c_str());
+			g_pTalk->SendText("", 0, MT_BEGIN_UPDATE, dwAddress);
+		}
 	}
 }

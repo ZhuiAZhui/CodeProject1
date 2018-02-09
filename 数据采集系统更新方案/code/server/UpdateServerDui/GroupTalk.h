@@ -73,7 +73,7 @@ typedef struct gt_hdr
 	u_char gt_fromtype;		// 消息来源类型 0 -- 客户端， 1 -- 服务端
 	DWORD dwAddr;			// 发送此消息的用户的IP地址
 	char szUser[15];		// 发送此消息的用户的用户名
-
+	//u_short usPort;			// 发送此消息的端口
 	int nDataLength;		// 后面数据的长度
 	char *data() { return (char*)(this + 1); }
 } GT_HDR;

@@ -21,6 +21,7 @@ Global
 		{A2608236-3D43-4737-9B33-71601ECC207E}.Release|x64.Build.0 = Release|x64
 		{A2608236-3D43-4737-9B33-71601ECC207E}.Release|x86.ActiveCfg = Release|Win32
 		{A2608236-3D43-4737-9B33-71601ECC207E}.Release|x86.Build.0 = Release|Win32
+		{A2608236-3D43-4737-9B33-71601ECC207E}.Release|x86.Deploy.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

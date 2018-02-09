@@ -103,7 +103,7 @@ private:// UI变量
 	CEditUI* m_pLocalDir;			// 本地站点关联目录
 	CListUI* m_pLocalDirList;		// 本地站点目录list
 
-
+	CRichEditUI* m_pLogEdit;		// 日志显示框
 public:
 	CMainPage m_MainPage;
 	//CPaintManagerUI m_pm;
@@ -113,6 +113,8 @@ public:
 	void OnAddRemote();
 	void OnModifyRemote();
 	void OnDeleteRemote();
+
+	void OnClickItem(int iSel);
 
 	void UpdateConfigIni();
 

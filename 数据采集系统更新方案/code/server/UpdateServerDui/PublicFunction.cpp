@@ -91,7 +91,7 @@ CDuiString PublicFunction::M2W(LPCSTR lpstr)
 string PublicFunction::W2M(LPCWSTR lpstr)
 {
 #ifdef _UNICODE
-	int iLen = WideCharToMultiByte(CP_ACP, 0, lpstr, -1, 0, 0, NULL, NULL) + 1;
+	int iLen = WideCharToMultiByte(CP_ACP, 0, lpstr, wcslen(lpstr), 0, 0, NULL, NULL) + 1;
 
 	char* pStr = new char[iLen];
 	memset((void*)pStr, 0, sizeof(char) * iLen);

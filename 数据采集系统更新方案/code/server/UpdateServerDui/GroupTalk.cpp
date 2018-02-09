@@ -122,7 +122,7 @@ DWORD WINAPI _GroupTalkEntry(LPVOID lpParam)
 	{		
 		::closesocket(pTalk->m_sSend);
 		::closesocket(pTalk->m_sRead);
-		::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (long)"bind failed! \n");
+		::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (LPARAM)"bind failed! \n");
 		return -1;
 	}
 
@@ -131,7 +131,7 @@ DWORD WINAPI _GroupTalkEntry(LPVOID lpParam)
 	{
 		::closesocket(pTalk->m_sSend);
 		::closesocket(pTalk->m_sRead);
-		::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (long)"JoinGroup failed! \n");
+		::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (LPARAM)"JoinGroup failed! \n");
 		return -1;
 	}
 
@@ -154,7 +154,7 @@ DWORD WINAPI _GroupTalkEntry(LPVOID lpParam)
 		{
 			if(::WSAGetLastError() != WSA_IO_PENDING)
 			{
-				::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (long)"PostRecv failed! \n");
+				::SendMessage(pTalk->m_hNotifyWnd, WM_GROUPTALK, -1, (LPARAM)"WSARecvFrom failed! \n");
 				pTalk->LeaveGroup();	
 				::closesocket(pTalk->m_sSend);
 				::closesocket(pTalk->m_sRead);
@@ -184,6 +184,7 @@ DWORD WINAPI _GroupTalkEntry(LPVOID lpParam)
 			}
 			// 填写源地址信息
 			pHeader->dwAddr = saFrom.sin_addr.S_un.S_addr;
+			//pHeader->usPort = saFrom.sin_port
 			pTalk->DispatchMsg(pHeader, dwRecv);
 		}
 	}
