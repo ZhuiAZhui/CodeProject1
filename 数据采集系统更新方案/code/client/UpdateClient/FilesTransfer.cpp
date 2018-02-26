@@ -17,6 +17,7 @@ RecvFile::RecvFile(HWND hNotifyWnd, std::string savePath, u_short port)
 	m_savePath = savePath;
 	m_serPort = port;
 	m_dwErrorCode = 0;
+	m_serSocket = INVALID_SOCKET;
 }
 
 
@@ -28,7 +29,12 @@ RecvFile::~RecvFile()
 		CloseHandle(m_recvThreads.GetAt(i));
 	}
 	m_recvThreads.RemoveAll();
-	closesocket(m_serSocket);
+
+	if (m_serSocket != INVALID_SOCKET)
+	{
+		closesocket(m_serSocket);
+		m_serSocket = INVALID_SOCKET;
+	}
 }
 
 bool RecvFile::InitRecv()
@@ -44,6 +50,7 @@ bool RecvFile::InitRecv()
 	if (bind(m_serSocket, (sockaddr*)&m_serAddr, sizeof(sockaddr_in)) == SOCKET_ERROR)
 	{
 		closesocket(m_serSocket);
+		m_serSocket = INVALID_SOCKET;
 		m_dwErrorCode = GetLastError();
 		return false;
 	}
@@ -52,6 +59,7 @@ bool RecvFile::InitRecv()
 	if (listen(m_serSocket, 10) == SOCKET_ERROR)
 	{
 		closesocket(m_serSocket);
+		m_serSocket = INVALID_SOCKET;
 		m_dwErrorCode = GetLastError();
 		return false;
 	}
@@ -99,7 +107,7 @@ DWORD RecvFile::RecvFileThreadProc(LPVOID lpParameter)
 		pRecvFile->m_dwErrorCode = GetLastError();
 
 		// 发送消息至主窗口
-		sprintf_s(szError, "accept失败，错误码：%d", pRecvFile->m_dwErrorCode);
+		sprintf_s(szError, "accept失败，错误码：%d\r\n", pRecvFile->m_dwErrorCode);
 		::SendMessageW(pRecvFile->m_hNotifyWnd, FILE_RECEVIE_OVER, 1, (LPARAM)szError);
 		return -1;
 	}
@@ -126,7 +134,7 @@ DWORD RecvFile::RecvFileThreadProc(LPVOID lpParameter)
 		pRecvFile->m_dwErrorCode = GetLastError();
 		
 		// 发送消息至主窗口
-		sprintf_s(szError, "recv失败，错误码：%d", pRecvFile->m_dwErrorCode);
+		sprintf_s(szError, "recv失败，错误码：%d\r\n", pRecvFile->m_dwErrorCode);
 		::SendMessageW(pRecvFile->m_hNotifyWnd, FILE_RECEVIE_OVER, 
 			FILE_TRANSFER_FAILED, (LPARAM)szError);
 		return -1;
@@ -135,7 +143,7 @@ DWORD RecvFile::RecvFileThreadProc(LPVOID lpParameter)
 	// 判断接收文件是否为空
 	if (strlen(fileStruct.FileName) == 0 || fileStruct.Filelength == 0)
 	{
-		sprintf_s(szError, "接收文件为空，请确认服务端配置是否正确！");
+		sprintf_s(szError, "接收文件为空，请确认服务端配置是否正确！\r\n");
 		::SendMessageW(pRecvFile->m_hNotifyWnd, FILE_RECEVIE_OVER, 
 			FILE_TRANSFER_FAILED, (LPARAM)szError);
 		return -1;
@@ -151,7 +159,7 @@ DWORD RecvFile::RecvFileThreadProc(LPVOID lpParameter)
 		errno_t err = fopen_s(&pFile, strSavePath.c_str(), "wb");
 		if (err != 0 || pFile == NULL)
 		{
-			sprintf_s(szError, "打开文件%s失败！", strSavePath.c_str());
+			sprintf_s(szError, "打开文件%s失败！\r\n", strSavePath.c_str());
 			::SendMessageW(pRecvFile->m_hNotifyWnd, FILE_RECEVIE_OVER, 
 				FILE_TRANSFER_FAILED, (LPARAM)szError);
 			return -1;
@@ -167,7 +175,7 @@ DWORD RecvFile::RecvFileThreadProc(LPVOID lpParameter)
 				pRecvFile->m_dwErrorCode = GetLastError();
 				if (pRecvFile->m_dwErrorCode != 0)
 				{
-					sprintf_s(szError, "接收缓冲区数据失败，错误码：%d", pRecvFile->m_dwErrorCode);
+					sprintf_s(szError, "接收缓冲区数据失败，错误码：%d\r\n", pRecvFile->m_dwErrorCode);
 					::SendMessageW(pRecvFile->m_hNotifyWnd, FILE_RECEVIE_OVER,
 						FILE_TRANSFER_FAILED, (LPARAM)szError);
 				}
