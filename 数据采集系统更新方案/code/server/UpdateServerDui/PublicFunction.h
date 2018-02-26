@@ -44,5 +44,7 @@ public:
 	//static bool GetFileVersion(const std::string ModuleName, std::string &Value);
 
 	static DWORD ReserveIP(const std::string ip);
+
+	static std::string ReadUpdateLog(std::string ip);
 };
 

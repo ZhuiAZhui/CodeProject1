@@ -145,6 +145,8 @@ void CUpdateServer::InitWindow()
 	m_pMaxBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("maxbtn")));
 	m_pRestoreBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("restorebtn")));
 	m_pMinBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("minbtn")));
+	
+	Init();
 	//m_pSkinBtn = static_cast<CButtonUI*>(m_pm.FindControl(_T("skinbtn")));
 	// 初始化WebBrowser控件
 	/*CWebBrowserUI* pBrowser1 = static_cast<CWebBrowserUI*>(m_pm.FindControl(_T("oneclick_browser1")));
@@ -269,7 +271,7 @@ void CUpdateServer::InitWindow()
 	//CColorPaletteUI* pColorPalette = (CColorPaletteUI*)m_pm.FindControl(_T("Pallet"));
 	//pColorPalette->SetSelectColor(0xff0199cb);
 
-	Init();
+	
 	// 拓展List -- remote list
 	//m_pRemoteList = static_cast<CListExUI*>(m_pm.FindControl(_T("machineList")));
 	//m_pRemoteList->InitListCtrl();
@@ -474,6 +476,11 @@ void CUpdateServer::Notify(TNotifyUI& msg)
 	{
 		if (name.CompareNoCase(_T("closebtn")) == 0)
 		{
+			if (m_running == true)
+			{
+				MessageBox(m_hWnd, _T("有更新任务正在运行，不能退出."), _T("提示"), MB_OK);
+				return;
+			}
 			if(IDYES == MessageBox(m_hWnd, _T("确定退出数据采集系统更新程序？"), _T("提示"), MB_YESNO))
 			{
 				::DestroyWindow(m_hWnd);
@@ -621,121 +628,6 @@ LRESULT CUpdateServer::OnDestroy(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	::PostQuitMessage(0L);
 	bHandled = FALSE;
 	return 0;
-}
-
-
-void CUpdateServer::OnLClick(CControlUI *pControl)
-{
-	CDuiString sName = pControl->GetName();
-	if (sName.CompareNoCase(_T("homepage_btn")) == 0)
-	{
-		// 动态创建Combo
-		CComboUI* pFontSize = static_cast<CComboUI*>(m_pm.FindControl(_T("mycombo")));
-		if (pFontSize)
-		{
-			pFontSize->RemoveAll();
-			CListLabelElementUI * pElement = new CListLabelElementUI();
-			pElement->SetText(_T("测试长文字"));
-			pElement->SetFixedHeight(30);
-			pElement->SetFixedWidth(120);
-			pFontSize->Add(pElement);
-			pFontSize->NeedParentUpdate();
-		}
-		//CComboUI* pFontSize = static_cast<CComboUI*>(m_pm.FindControl(_T("mycombo")));
-		//if(pFontSize)
-		//{
-		//	pFontSize->SetFixedXY(CDuiSize(pFontSize->GetFixedXY().cx + 5, pFontSize->GetFixedXY().cy));
-		//}
-		//ShellExecute(NULL, _T("open"), _T("https://github.com/qdtroy"), NULL, NULL, SW_SHOW);
-	}
-	else if (sName.CompareNoCase(_T("button1")) == 0)
-	{
-		CEditUI* pEdit = static_cast<CEditUI*>(m_pm.FindControl(_T("edit3")));
-		TCHAR* pstrText = (TCHAR*)pEdit->GetText().GetData();
-		if (pstrText != NULL && lstrlen(pstrText) > 0) {
-			double fEdit = _ttof(pstrText);
-			MessageBox(m_hWnd, pstrText, _T(""), 0);
-		}
-	}
-	/*else if (sName.CompareNoCase(_T("popwnd_btn")) == 0)
-	{
-		CPopWnd* pPopWnd = new CPopWnd();
-		pPopWnd->Create(m_hWnd, _T("透明窗口演示"), WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW, 0, 0, 800, 572);
-		pPopWnd->CenterWindow();
-	}
-	else if (sName.CompareNoCase(_T("modal_popwnd_btn")) == 0)
-	{
-		CPopWnd* pPopWnd = new CPopWnd();
-		pPopWnd->Create(m_hWnd, _T("透明窗口演示"), WS_POPUP | WS_VISIBLE, WS_EX_TOOLWINDOW, 0, 0, 800, 572);
-		pPopWnd->CenterWindow();
-		pPopWnd->ShowModal();
-	}*/
-
-	else if (sName.CompareNoCase(_T("qqgroup_btn")) == 0)
-	{
-		TCHAR szPath[MAX_PATH] = { 0 };
-		SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, NULL, 0, szPath);
-		CDuiString sIEPath;
-		sIEPath.Format(_T("%s\\Internet Explorer\\iexplore.exe"), szPath);
-		ShellExecute(NULL, _T("open"), sIEPath, _T("http://jq.qq.com/?_wv=1027&k=cDTUzr"), NULL, SW_SHOW);
-	}
-	else if (sName.CompareNoCase(_T("qq_btn")) == 0)
-	{
-		TCHAR szPath[MAX_PATH] = { 0 };
-		SHGetFolderPath(NULL, CSIDL_PROGRAM_FILES | CSIDL_FLAG_CREATE, NULL, 0, szPath);
-		CDuiString sIEPath;
-		sIEPath.Format(_T("%s\\Internet Explorer\\iexplore.exe"), szPath);
-		ShellExecute(NULL, _T("open"), sIEPath, _T("tencent://Message/?Uin=656067418&Menu=yes"), NULL, SW_SHOW);
-	}
-	else if (sName.CompareNoCase(_T("menubtn")) == 0)
-	{
-		CMenuWnd::GetGlobalContextMenuObserver().SetMenuCheckInfo(&m_MenuInfos);
-
-		if (m_pMenu != NULL) {
-			delete m_pMenu;
-			m_pMenu = NULL;
-		}
-		m_pMenu = new CMenuWnd();
-		CDuiPoint point;
-		::GetCursorPos(&point);
-		m_pMenu->Init(NULL, _T("menu.xml"), point, &m_pm);
-		// 设置状态
-		CMenuWnd::SetMenuItemInfo(_T("qianting"), true);
-
-		CMenuUI* rootMenu = m_pMenu->GetMenuUI();
-		if (rootMenu != NULL)
-		{
-			CMenuElementUI* pNew = new CMenuElementUI;
-			pNew->SetName(_T("Menu_Dynamic"));
-			pNew->SetText(_T("动态一级菜单"));
-			pNew->SetShowExplandIcon(true);
-			pNew->SetIcon(_T("WebSit.png"));
-			pNew->SetIconSize(16, 16);
-			rootMenu->Add(pNew);
-
-			//CMenuElementUI* pTempMenu = (CMenuElementUI*)rootMenu->GetItemAt(0);
-			//CMenuElementUI* pSubNew = new CMenuElementUI;
-			//pSubNew->SetText(_T("动态二级菜单"));
-			//pSubNew->SetName(_T("Menu_Dynamic"));
-			//pSubNew->SetIcon(_T("Virus.png"));
-			//pSubNew->SetIconSize(16,16);
-			//pSubNew->SetOwner(pTempMenu->GetParent());
-			//pTempMenu->Add(pSubNew);
-
-			CMenuElementUI* pNew2 = new CMenuElementUI;
-			pNew2->SetName(_T("Menu_Dynamic"));
-			pNew2->SetText(_T("动态一级菜单2"));
-			rootMenu->AddAt(pNew2, 2);
-		}
-
-		// 动态添加后重新设置菜单的大小
-		m_pMenu->ResizeMenu();
-	}
-	else if (sName.CompareNoCase(_T("dpi_btn")) == 0)
-	{
-		int nDPI = _ttoi(pControl->GetUserData());
-		m_pm.SetDPI(nDPI);
-	}
 }
 
 
@@ -913,7 +805,16 @@ void CUpdateServer::OnModifyRemote()
 			g_host[index].fileport = _ttoi(strfileport);
 			g_host[index].msgport = _ttoi(strmsgport);
 			bIsExisted = true;
-			m_pRemoteList->RemoveAt(index);
+			
+			// 修改Item值
+			//m_pRemoteList->RemoveAt(index);
+			CControlUI *p = m_pRemoteList->GetItemAt(index);
+			CListTextExtElementUI *pItem = static_cast<CListTextExtElementUI*>(p->GetInterface(_T("ListTextExElement")));
+			if (pItem != NULL)
+			{
+				pItem->SetText(2, strfileport);
+				pItem->SetText(3, strmsgport);
+			}
 			break;
 		}
 	}
@@ -929,14 +830,14 @@ void CUpdateServer::OnModifyRemote()
 	m_pFileportEdit->SetText(_T(""));
 	m_pMsgportEdit->SetText(_T(""));
 
-	CListTextExtElementUI* pItem = new CListTextExtElementUI();
-	pItem->SetFixedHeight(30);
-	m_pRemoteList->Add(pItem);
-	pItem->SetAttribute(_T("style"), _T("listex_item_style"));
+	//CListTextExtElementUI* pItem = new CListTextExtElementUI();
+	//pItem->SetFixedHeight(30);
+	//m_pRemoteList->Add(pItem);
+	//pItem->SetAttribute(_T("style"), _T("listex_item_style"));
 
-	pItem->SetText(1, strhost);
-	pItem->SetText(2, strfileport);
-	pItem->SetText(3, strmsgport);
+	//pItem->SetText(1, strhost);
+	//pItem->SetText(2, strfileport);
+	//pItem->SetText(3, strmsgport);
 }
 
 void CUpdateServer::OnDeleteRemote()
@@ -975,6 +876,10 @@ void CUpdateServer::OnDeleteRemote()
 		return;
 	}
 	UpdateConfigIni();
+
+	m_pHostIP->SetText(_T(""));
+	m_pFileportEdit->SetText(_T(""));
+	m_pMsgportEdit->SetText(_T(""));
 }
 
 void CUpdateServer::OnClickItem(int iSel)
@@ -999,10 +904,15 @@ void CUpdateServer::OnClickItem(int iSel)
 		return;
 	}
 	m_pLogEdit->SetText(_T(""));
+	
 
-	string strLog = "";
+	
 	std::string strPath = m_curPath + "\\" + strRemoteIP + UPDATELOG;
-	char szBuffer[1024] = { 0 };
+
+	string strLog = PublicFunction::ReadUpdateLog(strPath);
+
+
+	/*char szBuffer[1024] = { 0 };
 
 	FILE *pFile = NULL;
 	errno_t err = fopen_s(&pFile, strPath.c_str(), "rb");
@@ -1023,7 +933,7 @@ void CUpdateServer::OnClickItem(int iSel)
 		strLog += szBuffer;
 	}
 	
-	fclose(pFile);
+	fclose(pFile);*/
 
 	m_pLogEdit->SetText(PublicFunction::M2W(strLog.c_str()));
 	SIZE siz;
@@ -1089,10 +999,22 @@ DWORD CUpdateServer::RecvUpdateFileThreadProc(LPVOID lpParameter)
 	addr_ip.sin_addr.S_un.S_addr = pHeader->dwAddr;
 	string strIP = inet_ntoa(addr_ip.sin_addr);
 
+	unsigned short usPort = FILE_TRANSFER_PORT_DEFAULT;
+	// 根据IP 获取文件传输的端口号
+	for (int index = 0;index < g_host.size();index++)
+	{
+		string tmpip = PublicFunction::W2M(g_host[index].ip);
+		if (strcmp(tmpip.c_str(), strIP.c_str()) == 0)
+		{
+			usPort = g_host[index].fileport;
+			break;
+		}
+	}
+
 	string strerror = "";
 	CDuiString error = _T("");
 	string strPath = PublicFunction::GetCurrentRunPath() + "\\" + strIP;
-	RecvFile *fileRecv = new RecvFile(NULL, strPath);
+	RecvFile *fileRecv = new RecvFile(NULL, strPath, usPort);
 	HANDLE handle = fileRecv->StartRecv(strerror, 10);
 
 	if (handle == INVALID_HANDLE_VALUE)
@@ -1138,11 +1060,13 @@ DWORD CUpdateServer::RecvRemoteDirFileThreadProc(LPVOID lpParameter)
 	}
 	
 	CDuiString strIP = pUpdateObj->m_pRemoteDirIP->GetText();
+	CDuiString strPort = pUpdateObj->m_pFileportEdit->GetText();
+	unsigned short usPort = atoi(PublicFunction::W2M(strPort.GetData()).c_str());
 
 	string strerror = "";
 	CDuiString error = _T("");
 	string strPath = PublicFunction::GetCurrentRunPath() + "\\" + PublicFunction::W2M(strIP.GetData());
-	RecvFile *fileRecv = new RecvFile(pUpdateObj->m_hWnd, strPath);
+	RecvFile *fileRecv = new RecvFile(pUpdateObj->m_hWnd, strPath, usPort);
 	HANDLE handle = fileRecv->StartRecv(strerror, 10);
 
 	if (handle == INVALID_HANDLE_VALUE)
@@ -1253,7 +1177,19 @@ DWORD CUpdateServer::SendFileThreadProc(LPVOID lpParameter)
 
 	string strLogPath = PublicFunction::GetCurrentRunPath() + "\\" + strIP;
 
-	FileSend *fileSend = new FileSend(pUpdateObj->m_hWnd, strIP, FILE_TRANSFER_PORT_DEFAULT);
+	unsigned short usPort = FILE_TRANSFER_PORT_DEFAULT;
+	// 根据IP 获取文件传输的端口号
+	for (int index = 0;index < g_host.size();index++)
+	{
+		string tmpip = PublicFunction::W2M(g_host[index].ip);
+		if (strcmp(tmpip.c_str(), strIP.c_str()) == 0)
+		{
+			usPort = g_host[index].fileport;
+			break;
+		}
+	}
+
+	FileSend *fileSend = new FileSend(pUpdateObj->m_hWnd, strIP, usPort);
 	
 	// 循环
 	for (size_t index = 0;index < g_localFile.size(); index++)

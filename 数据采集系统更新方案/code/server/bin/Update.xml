@@ -7,7 +7,7 @@
         <UpdateFile name="ElectronBanlance.dll" type="file" version="1, 0, 0, 1" MD5="7e81b9c8abb1b0efc9f20dcb6319cff5" lastwritetime="2008-04-25 12:32" />
         <UpdateFile name="GDHConfig.ini" type="file" version="" MD5="0e9c4a63a513d258e12c7c6f708a2c14" lastwritetime="2008-06-19 11:32" />
         <UpdateFile name="GDHProcess.dll" type="file" version="1, 0, 0, 1" MD5="7ec475a7646e1e3260b81825949b8d8a" lastwritetime="2008-05-23 10:19" />
-        <UpdateFile name="Image" type="dir" lastwritetime="2018-01-02 14:30">
+        <UpdateFile name="Image" type="dir">
             <UpdateFile name="b_jqtj.gif" type="file" version="" MD5="b233fe0566ef16a312cad32c18894f56" lastwritetime="2008-08-12 10:44" />
             <UpdateFile name="b_sctj.gif" type="file" version="" MD5="1e7c2b05bac0c6b9b6ad1880d63d0e07" lastwritetime="2008-08-12 10:44" />
             <UpdateFile name="b_sjlr.gif" type="file" version="" MD5="32c2a417881f5dc061f25640877b2719" lastwritetime="2008-08-12 10:45" />
@@ -19,7 +19,7 @@
             <UpdateFile name="zlbg.png" type="file" version="" MD5="cbf33f617c02ea211fb026d94b4fc2e9" lastwritetime="2008-08-27 17:43" />
         </UpdateFile>
         <UpdateFile name="KeyBoard.dll" type="file" version="1, 0, 0, 1" MD5="a6828fd9ed021bc5657d2ebbb719bbde" lastwritetime="2004-02-22 14:42" />
-        <UpdateFile name="Log" type="dir" lastwritetime="2013-10-30 07:55" />
+        <UpdateFile name="Log" type="dir" />
         <UpdateFile name="LuRu.ini" type="file" version="" MD5="bc3ede8db5521f8c6f249906c6d85a57" lastwritetime="2013-11-21 09:13" />
         <UpdateFile name="Machine.Ini" type="file" version="" MD5="1187ba0df874876dd27e514d368105b9" lastwritetime="2016-01-22 12:12" />
         <UpdateFile name="mlpstopinfo.txt" type="file" version="" MD5="5000b7a6ed1ebf3376379d4dd3187be5" lastwritetime="2008-06-16 23:21" />

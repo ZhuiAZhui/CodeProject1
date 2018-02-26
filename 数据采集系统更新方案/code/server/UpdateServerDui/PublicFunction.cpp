@@ -337,6 +337,14 @@ void PublicFunction::TraverseFolder(const std::string path, TiXmlElement *elemen
 		{
 			strFileName = data.cFileName;
 
+			// 先将文件时间转换为本地文件时间，再转换为系统时间（防止出现时区差异）
+			FileTimeToLocalFileTime(&ft, &localTime);
+			FileTimeToSystemTime(&localTime, &st);
+
+			sprintf_s(szBuffer, MAX_PATH, "%04d-%02d-%02d %02d:%02d", st.wYear, st.wMonth,
+				st.wDay, st.wHour, st.wMinute);
+			strLastDate = szBuffer;
+
 			// 判断当前文件是否在 ‘排除文件’列表中，是，跳过此文件
 			vector<string>::iterator findRes = find(excludeFiles.begin(), excludeFiles.end(), strFileName);
 			if (findRes == excludeFiles.end())
@@ -368,15 +376,10 @@ void PublicFunction::TraverseFolder(const std::string path, TiXmlElement *elemen
 						fileEle->SetAttribute("version", strVersion.c_str());
 						fileEle->SetAttribute("MD5", strMD5.c_str());
 					}
-				}
-				// 先将文件时间转换为本地文件时间，再转换为系统时间（防止出现时区差异）
-				FileTimeToLocalFileTime(&ft, &localTime);
-				FileTimeToSystemTime(&localTime, &st);
 
-				sprintf_s(szBuffer, MAX_PATH, "%04d-%02d-%02d %02d:%02d", st.wYear, st.wMonth,
-					st.wDay, st.wHour, st.wMinute);
-				strLastDate = szBuffer;
-				fileEle->SetAttribute("lastwritetime", strLastDate.c_str());
+					fileEle->SetAttribute("lastwritetime", strLastDate.c_str());
+				}
+				
 			}
 		}
 
@@ -445,4 +448,37 @@ DWORD PublicFunction::ReserveIP(const std::string ip)
 	DWORD dwIP = MAKEIPADDRESS(addr.S_un.S_un_b.s_b1, addr.S_un.S_un_b.s_b2,
 		addr.S_un.S_un_b.s_b3, addr.S_un.S_un_b.s_b4);
 	return dwIP;
+}
+
+std::string PublicFunction::ReadUpdateLog(std::string path)
+{
+	string strLog = "";
+	std::string strPath = path;
+	char szBuffer[1024] = { 0 };
+
+	FILE *pFile = NULL;
+	errno_t err = fopen_s(&pFile, strPath.c_str(), "rb");
+	if (err != 0 || pFile == NULL)
+	{
+		return strLog;
+	}
+
+	while (!feof(pFile))
+	{
+		memset(szBuffer, 0, 1024);
+		err = fread_s(szBuffer, 1024 * sizeof(char), sizeof(char), 1023, pFile);
+		if (err == 0)
+		{
+			fclose(pFile);
+			pFile = NULL;
+			break;
+		}
+
+		szBuffer[1023] = '\0';
+		strLog += szBuffer;
+	}
+
+	fclose(pFile);
+
+	return strLog;
 }

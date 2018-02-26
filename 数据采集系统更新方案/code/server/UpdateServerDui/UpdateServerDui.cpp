@@ -34,7 +34,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 	CUpdateServer* pFrame = new CUpdateServer();
 	if (pFrame == NULL) return 0;
-	pFrame->Create(NULL, _T("UpdateServer"), UI_WNDSTYLE_DIALOG, WS_EX_STATICEDGE | 
+	pFrame->Create(NULL, _T("UpdateServer"), UI_WNDSTYLE_FRAME, WS_EX_STATICEDGE | 
 		WS_EX_APPWINDOW, 0, 0, 800, 600);
 	pFrame->CenterWindow();
 	//::ShowWindow(*pFrame, SW_SHOW);
